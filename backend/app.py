@@ -9,27 +9,43 @@ from backend.extensions import db
 from backend.models import User, Product, FoodMaker, Cart
 
 def create_app():
+    import shutil
+
     # Configure template and static directories pointing to frontend/
     base_dir = os.path.abspath(os.path.dirname(__file__))
     frontend_dir = os.path.abspath(os.path.join(base_dir, '..', 'frontend'))
     database_dir = os.path.abspath(os.path.join(base_dir, '..', 'database'))
     db_file_path = os.path.join(database_dir, 'database.db')
 
-    # Ensure database and upload directories exist
-    os.makedirs(database_dir, exist_ok=True)
-    os.makedirs(os.path.join(base_dir, 'uploads'), exist_ok=True)
+    # Handle Vercel Serverless environment
+    if os.environ.get('VERCEL'):
+        tmp_db_path = '/tmp/database.db'
+        if not os.path.exists(tmp_db_path) and os.path.exists(db_file_path):
+            try:
+                shutil.copyfile(db_file_path, tmp_db_path)
+            except Exception:
+                pass
+        db_file_path = tmp_db_path if os.path.exists(tmp_db_path) else db_file_path
+        upload_folder = '/tmp/uploads'
+        os.makedirs(upload_folder, exist_ok=True)
+    else:
+        # Ensure database and upload directories exist
+        os.makedirs(database_dir, exist_ok=True)
+        upload_folder = os.path.join(base_dir, 'uploads')
+        os.makedirs(upload_folder, exist_ok=True)
 
     app = Flask(
         __name__,
-        template_folder="../frontend/templates",
-        static_folder="../frontend/static"
+        template_folder=os.path.join(frontend_dir, 'templates'),
+        static_folder=os.path.join(frontend_dir, 'static'),
+        static_url_path='/static'
     )
 
     # App configuration
     app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'flavorbridge-super-secret-key-2026-production-ready')
     app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{db_file_path}"
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-    app.config['UPLOAD_FOLDER'] = os.path.join(base_dir, 'uploads')
+    app.config['UPLOAD_FOLDER'] = upload_folder
     app.config['MAX_CONTENT_LENGTH'] = 10 * 1024 * 1024  # 10MB
 
     # Initialize extensions
@@ -83,6 +99,12 @@ def create_app():
     # Route for serving uploaded images
     @app.route('/uploads/<filename>')
     def uploaded_file(filename):
+        backend_uploads = os.path.join(base_dir, 'uploads')
+        if os.path.exists(os.path.join(backend_uploads, filename)):
+            return send_from_directory(backend_uploads, filename)
+        static_images = os.path.join(frontend_dir, 'static', 'images')
+        if os.path.exists(os.path.join(static_images, filename)):
+            return send_from_directory(static_images, filename)
         return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
     # Homepage Route
