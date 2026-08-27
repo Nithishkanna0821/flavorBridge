@@ -1,0 +1,295 @@
+{% extends "base.html" %}
+
+{% block title %}Food Maker Verification & Daily Freshness Log — FlavorBridge{% endblock %}
+
+{% block content %}
+<div class="container container-narrow" style="padding: 3.5rem 1.25rem;">
+  
+  <!-- Breadcrumb & Title -->
+  <div style="margin-bottom: 2rem;">
+    <div style="font-size: 0.85rem; color: var(--gray-medium); margin-bottom: 0.4rem;">
+      <a href="{{ url_for('food_maker.dashboard') }}">Dashboard</a> &gt; <span>Verification & Daily Ingredients</span>
+    </div>
+    <h1 style="font-size: 2.2rem; margin-bottom: 0.35rem;">
+      <i class="fa-solid fa-certificate" style="color: var(--primary);"></i> Food Maker Verification System
+    </h1>
+    <p style="color: var(--gray-dark); font-size: 0.95rem;">
+      Build trust with customers by maintaining your culinary authenticity profile and uploading your fresh daily ingredients & final dish photos.
+    </p>
+  </div>
+
+  <!-- Mandatory Statutory Notice / Disclaimer Banner -->
+  <div style="background: #EBF5FB; border: 1px solid #AED6F1; border-radius: 12px; padding: 1.25rem; margin-bottom: 2rem; display: flex; align-items: flex-start; gap: 0.75rem;">
+    <i class="fa-solid fa-shield-halved" style="color: #2980B9; font-size: 1.3rem; margin-top: 2px;"></i>
+    <div style="font-size: 0.88rem; color: #1B4F72; line-height: 1.5;">
+      <strong>Internal Platform Authenticity Score:</strong> This verification score and daily freshness badge are internal FlavorBridge quality ratings based on daily ingredient transparency, recipe authenticity, and culinary experience. It does not represent or substitute statutory governmental or food-safety regulatory certifications.
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       1. DAILY INGREDIENTS & FINAL DISH VERIFICATION SECTION (REFRESHES DAILY)
+       ========================================================================= -->
+  <div style="background: #FFFFFF; border-radius: 18px; border: 2px solid {{ '#27AE60' if today_log else '#D35400' }}; padding: 2rem; margin-bottom: 2.5rem; box-shadow: var(--shadow-md);">
+    
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 1rem;">
+      <div style="display: flex; align-items: center; gap: 0.75rem;">
+        <div style="width: 48px; height: 48px; border-radius: 12px; background: {{ '#EAFAF1' if today_log else '#FDF2E9' }}; color: {{ '#196F3D' if today_log else '#D35400' }}; display: flex; align-items: center; justify-content: center; font-size: 1.4rem;">
+          <i class="fa-solid fa-calendar-day"></i>
+        </div>
+        <div>
+          <h2 style="font-size: 1.35rem; margin: 0; color: var(--dark);">Daily Ingredients & Final Dish Verification</h2>
+          <div style="font-size: 0.85rem; color: var(--gray-medium);">
+            Refreshes daily for: <strong>{{ today_date_str }}</strong>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        {% if today_log %}
+          <span class="badge badge-verified" style="font-size: 0.92rem; padding: 0.45rem 1rem;">
+            <i class="fa-solid fa-circle-check"></i> ✓ Fresh Batch Verified for Today
+          </span>
+        {% else %}
+          <span class="badge badge-pending" style="font-size: 0.92rem; padding: 0.45rem 1rem; background: #FEF9E7; color: #B7950B; border: 1px solid #F9E79F;">
+            <i class="fa-solid fa-clock"></i> Daily Check-in Required for Today
+          </span>
+        {% endif %}
+      </div>
+    </div>
+
+    {% if today_log %}
+      <!-- Today's Active Submission Showcase -->
+      <div style="background: #FAF7F2; border-radius: 14px; border: 1px solid #ECE7DE; padding: 1.5rem; margin-bottom: 1.5rem;">
+        <div style="display: grid; grid-template-columns: 160px 1fr; gap: 1.5rem; align-items: center;">
+          <!-- Dish Photo Thumbnail -->
+          <div style="width: 160px; height: 130px; border-radius: 10px; overflow: hidden; background: #E0D3C1; display: flex; align-items: center; justify-content: center; border: 1px solid #D5C8B4;">
+            {% if today_log.dish_image %}
+              <img src="{{ url_for('uploaded_file', filename=today_log.dish_image) }}" alt="Today's Fresh Dish" style="width: 100%; height: 100%; object-fit: cover;">
+            {% else %}
+              <i class="fa-solid fa-utensils" style="font-size: 2rem; color: var(--primary);"></i>
+            {% endif %}
+          </div>
+
+          <!-- Ingredients & Dish Info -->
+          <div>
+            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+              <h4 style="font-size: 1.15rem; color: var(--dark); margin-bottom: 4px;">
+                {{ today_log.dishes_prepared or 'Daily Fresh Batch' }}
+              </h4>
+              <span style="font-size: 0.75rem; color: var(--gray-medium);">
+                Logged at {{ today_log.created_at.strftime('%I:%M %p') }}
+              </span>
+            </div>
+
+            <div style="margin: 6px 0; font-size: 0.9rem; color: var(--dark);">
+              <strong>Fresh Ingredients Used Today:</strong>
+              <p style="margin: 2px 0 6px; color: var(--gray-dark); line-height: 1.4;">{{ today_log.ingredients_used }}</p>
+            </div>
+
+            {% if today_log.sourcing_notes %}
+              <div style="font-size: 0.82rem; color: var(--secondary);">
+                <i class="fa-solid fa-seedling"></i> Sourcing: {{ today_log.sourcing_notes }}
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    {% endif %}
+
+    <!-- Daily Upload / Update Form -->
+    <form method="POST" action="{{ url_for('food_maker.daily_verification_upload') }}" enctype="multipart/form-data">
+      <div style="font-size: 0.95rem; font-weight: 700; color: var(--dark); margin-bottom: 1rem; border-bottom: 1px solid var(--gray-light); padding-bottom: 0.5rem;">
+        {{ 'Update Today\'s Ingredients & Dish Photo' if today_log else 'Submit Today\'s Fresh Ingredients & Final Dish Photo' }}
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="daily-dishes">Dishes / Products Prepared Today *</label>
+        <input type="text" id="daily-dishes" name="dishes_prepared" class="form-control" placeholder="e.g. Madurai Kari Dosa, Fresh Chettinad Chicken Masala, Tirunelveli Halwa" value="{{ today_log.dishes_prepared if today_log else '' }}" required>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="daily-ingredients">Fresh Ingredients Used Today (Refreshed Daily) *</label>
+        <textarea id="daily-ingredients" name="ingredients_used" class="form-control" rows="3" placeholder="List all fresh ingredients, oils, spices ground today (e.g. Farm country eggs, freshly ground Chettinad kalpasi masala, cold-pressed sesame oil, fresh shallots)..." required>{{ today_log.ingredients_used if today_log else '' }}</textarea>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" for="daily-image">Photo of Final Dish / Kitchen Batch *</label>
+          <input type="file" id="daily-image" name="dish_image" class="form-control" accept=".jpg,.jpeg,.png,.webp" {{ '' if today_log else 'required' }}>
+          <div style="font-size: 0.78rem; color: var(--gray-medium); margin-top: 4px;">
+            Upload today's freshly prepared dish photo (Max 5MB).
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="daily-sourcing">Ingredient Sourcing / Hygiene Notes</label>
+          <input type="text" id="daily-sourcing" name="sourcing_notes" class="form-control" placeholder="e.g. Wood-pressed oil from local Chettinad mill, stone ground" value="{{ today_log.sourcing_notes if today_log else '' }}">
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-block btn-lg" style="margin-top: 1rem;">
+        <i class="fa-solid fa-camera"></i> {{ 'Update Daily Verification' if today_log else 'Verify Today\'s Ingredients & Dish Photo' }}
+      </button>
+    </form>
+  </div>
+
+  <!-- Past Daily Verification History (Audit Trail) -->
+  {% if past_logs %}
+    <div style="background: #FFFFFF; border-radius: 16px; border: var(--border-light); padding: 1.75rem; margin-bottom: 2.5rem; box-shadow: var(--shadow-sm);">
+      <h3 style="font-size: 1.2rem; margin-bottom: 1rem; color: var(--dark);">
+        <i class="fa-solid fa-clock-rotate-left" style="color: var(--secondary);"></i> Daily Verification History
+      </h3>
+
+      <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+        {% for log in past_logs %}
+          <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 1rem; background: #FAF7F2; border-radius: 8px; border: 1px solid #ECE7DE; flex-wrap: wrap; gap: 0.5rem;">
+            <div style="display: flex; align-items: center; gap: 1rem;">
+              <span class="badge badge-verified" style="font-size: 0.78rem;"><i class="fa-solid fa-check"></i> {{ log.log_date }}</span>
+              <strong style="font-size: 0.92rem; color: var(--dark);">{{ log.dishes_prepared or 'Daily Batch' }}</strong>
+            </div>
+            <div style="font-size: 0.82rem; color: var(--gray-dark); max-width: 350px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">
+              {{ log.ingredients_used }}
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  {% endif %}
+
+  <!-- =========================================================================
+       2. PROFILE & OVERALL QUALITY VERIFICATION SCORING SECTION (OUT OF 100)
+       ========================================================================= -->
+  <div class="verification-meter-box">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+      <div>
+        <span style="font-size: 0.85rem; color: var(--gray-medium); text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;">Overall Platform Verification Score</span>
+        <h2 style="font-size: 1.8rem; margin: 0.2rem 0; color: var(--dark);">
+          Score: {{ maker.verification_score }} / 100
+        </h2>
+      </div>
+
+      <div>
+        {% if maker.is_verified %}
+          <span class="badge badge-verified" style="font-size: 1rem; padding: 0.45rem 1rem;">
+            <i class="fa-solid fa-circle-check"></i> ✓ Verified Food Maker
+          </span>
+        {% else %}
+          <span class="badge badge-pending" style="font-size: 1rem; padding: 0.45rem 1rem;">
+            <i class="fa-solid fa-clock"></i> Verification Pending (Need 80+)
+          </span>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Meter Bar Track -->
+    <div class="meter-bar-track">
+      <div class="meter-bar-fill" style="width: {{ maker.verification_score }}%;"></div>
+    </div>
+
+    <!-- Scoring Criteria Checklist Breakdown -->
+    <ul class="verification-checklist">
+      <!-- 1. Profile completed -->
+      {% set p_complete = user.name and user.city and user.address and user.phone %}
+      <li class="verification-check-item {{ 'passed' if p_complete else 'pending' }}">
+        <i class="fa-solid {{ 'fa-circle-check' if p_complete else 'fa-circle-xmark' }}"></i>
+        <span>1. Profile Information Completed (Name, City, Address, Phone) <strong>(+20 Points)</strong></span>
+      </li>
+
+      <!-- 2. Speciality provided -->
+      {% set s_complete = maker.speciality and maker.speciality|length > 3 %}
+      <li class="verification-check-item {{ 'passed' if s_complete else 'pending' }}">
+        <i class="fa-solid {{ 'fa-circle-check' if s_complete else 'fa-circle-xmark' }}"></i>
+        <span>2. Food Speciality & Cuisines Defined <strong>(+20 Points)</strong></span>
+      </li>
+
+      <!-- 3. Experience provided -->
+      {% set e_complete = maker.years_experience and maker.years_experience > 0 %}
+      <li class="verification-check-item {{ 'passed' if e_complete else 'pending' }}">
+        <i class="fa-solid {{ 'fa-circle-check' if e_complete else 'fa-circle-xmark' }}"></i>
+        <span>3. Years of Culinary Experience Provided (> 0 yrs) <strong>(+20 Points)</strong></span>
+      </li>
+
+      <!-- 4. Images provided -->
+      {% set i_complete = maker.profile_image or (maker.products and maker.products|length > 0) or (today_log and today_log.dish_image) %}
+      <li class="verification-check-item {{ 'passed' if i_complete else 'pending' }}">
+        <i class="fa-solid {{ 'fa-circle-check' if i_complete else 'fa-circle-xmark' }}"></i>
+        <span>4. Daily Dish Photos / Kitchen Images Provided <strong>(+20 Points)</strong></span>
+      </li>
+
+      <!-- 5. Food details provided -->
+      {% set d_complete = (maker.description and maker.description|length > 15) or (maker.products and maker.products|length > 0) or maker.is_daily_verified %}
+      <li class="verification-check-item {{ 'passed' if d_complete else 'pending' }}">
+        <i class="fa-solid {{ 'fa-circle-check' if d_complete else 'fa-circle-xmark' }}"></i>
+        <span>5. Daily Ingredients Log / Heritage Products Listed <strong>(+20 Points)</strong></span>
+      </li>
+    </ul>
+  </div>
+
+  <!-- Verification Profile Update Form -->
+  <div class="form-card">
+    <h3 style="font-size: 1.3rem; margin-bottom: 1.5rem; color: var(--dark);">
+      <i class="fa-solid fa-pen-to-square" style="color: var(--primary);"></i> Permanent Kitchen Profile Details
+    </h3>
+
+    <form method="POST" action="{{ url_for('food_maker.verification') }}" enctype="multipart/form-data">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Maker / Kitchen Name *</label>
+          <input type="text" name="name" class="form-control" value="{{ user.name }}" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Phone Number *</label>
+          <input type="tel" name="phone" class="form-control" value="{{ user.phone or '' }}" required>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">City *</label>
+          <input type="text" name="city" class="form-control" value="{{ user.city or '' }}" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Kitchen Street Address *</label>
+          <input type="text" name="address" class="form-control" value="{{ user.address or '' }}" required>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Food Speciality * (+20 pts)</label>
+          <input type="text" name="speciality" class="form-control" value="{{ maker.speciality or '' }}" placeholder="e.g. Traditional Podis, Sweets, Kari Dosa" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Years of Experience (+20 pts)</label>
+          <input type="number" name="years_experience" class="form-control" value="{{ maker.years_experience or 5 }}" min="1" required>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Regional Cuisines / Traditions *</label>
+        <input type="text" name="cuisines" class="form-control" value="{{ maker.cuisines or '' }}" placeholder="e.g. Chettinad, Madurai, South Indian">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Kitchen Story & Authentic Technique (+20 pts)</label>
+        <textarea name="description" class="form-control" rows="3" placeholder="Tell food lovers about your cooking methods, wood-pressed oils, stone grinding, etc.">{{ maker.description or '' }}</textarea>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Kitchen / Profile Photo (+20 pts)</label>
+        <input type="file" name="profile_image" class="form-control" accept=".jpg,.jpeg,.png,.webp">
+        {% if maker.profile_image %}
+          <div style="font-size: 0.78rem; color: var(--gray-medium); margin-top: 4px;">
+            Current photo: <code>{{ maker.profile_image }}</code>
+          </div>
+        {% endif %}
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-block btn-lg" style="margin-top: 1.5rem;">
+        <i class="fa-solid fa-calculator"></i> Save & Recalculate Verification Score
+      </button>
+    </form>
+  </div>
+
+</div>
+{% endblock %}

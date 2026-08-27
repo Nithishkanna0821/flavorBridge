@@ -1,0 +1,242 @@
+{% extends "base.html" %}
+
+{% block title %}Explore Authentic Regional Foods — FlavorBridge{% endblock %}
+
+{% block content %}
+<div class="container" style="padding: 2.5rem 1.25rem;">
+  
+  <!-- Catalog Breadcrumb & Title Header -->
+  <div style="margin-bottom: 2rem;">
+    <div style="font-size: 0.85rem; color: var(--gray-medium); margin-bottom: 0.4rem;">
+      <a href="{{ url_for('index') }}">Home</a> &gt; <span>Regional Foods</span>
+    </div>
+    <h1 style="font-size: 2.2rem; margin-bottom: 0.4rem;">
+      {% if selected_category %}{{ selected_category }}{% elif query %}Search: "{{ query }}"{% else %}All Regional Delicacies{% endif %}
+    </h1>
+    <p style="color: var(--gray-dark); font-size: 0.95rem;">
+      Showing {{ total_count }} handcrafted authentic items from verified local food makers across India
+    </p>
+  </div>
+
+  <div class="catalog-layout">
+    <!-- Filter Sidebar -->
+    <aside class="filter-sidebar">
+      <form method="GET" action="{{ url_for('product.products_list') }}" id="catalog-filter-form">
+        <div class="filter-header">
+          <h3><i class="fa-solid fa-sliders" style="color: var(--primary);"></i> Filters</h3>
+          <a href="{{ url_for('product.products_list') }}" style="font-size: 0.82rem; font-weight: 600; color: var(--danger);">Reset All</a>
+        </div>
+
+        <!-- Search term preservation -->
+        {% if query %}
+          <input type="hidden" name="q" value="{{ query }}">
+        {% endif %}
+
+        <!-- Food Type Filter (Packaged vs Fresh) -->
+        <div class="filter-group">
+          <div class="filter-group-title">Product Type</div>
+          <div class="filter-checkbox-list">
+            <label class="filter-checkbox-label">
+              <input type="radio" name="product_type" value="" {{ 'checked' if not selected_type else '' }}>
+              <span>All Products</span>
+            </label>
+            <label class="filter-checkbox-label">
+              <input type="radio" name="product_type" value="Packaged Food" {{ 'checked' if selected_type == 'Packaged Food' else '' }}>
+              <span><i class="fa-solid fa-box-open" style="color: #2980B9;"></i> Packaged Food</span>
+            </label>
+            <label class="filter-checkbox-label">
+              <input type="radio" name="product_type" value="Fresh Food" {{ 'checked' if selected_type == 'Fresh Food' else '' }}>
+              <span><i class="fa-solid fa-bowl-hot" style="color: #27AE60;"></i> Fresh Food (Hot Meals)</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Category Filter -->
+        <div class="filter-group">
+          <div class="filter-group-title">Food Category</div>
+          <div class="filter-checkbox-list">
+            <label class="filter-checkbox-label">
+              <input type="radio" name="category" value="" {{ 'checked' if not selected_category else '' }}>
+              <span>All Categories</span>
+            </label>
+            {% for cat in categories %}
+              <label class="filter-checkbox-label">
+                <input type="radio" name="category" value="{{ cat }}" {{ 'checked' if selected_category == cat else '' }}>
+                <span>{{ cat }}</span>
+              </label>
+            {% endfor %}
+          </div>
+        </div>
+
+        <!-- City Origin Filter -->
+        <div class="filter-group">
+          <div class="filter-group-title">City / Region</div>
+          <select name="city" class="form-control" style="font-size: 0.88rem; padding: 0.5rem 0.75rem;">
+            <option value="">All Cities</option>
+            {% for c in cities %}
+              <option value="{{ c }}" {{ 'selected' if selected_city == c else '' }}>{{ c }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <!-- Price Range Filter -->
+        <div class="filter-group">
+          <div class="filter-group-title">Price Range (₹)</div>
+          <div class="price-range-inputs">
+            <input type="number" name="min_price" id="min-price-input" class="price-input" placeholder="Min" value="{{ min_price or '' }}" min="0">
+            <span style="color: var(--gray-medium);">-</span>
+            <input type="number" name="max_price" id="max-price-input" class="price-input" placeholder="Max" value="{{ max_price or '' }}" min="0">
+          </div>
+        </div>
+
+        <!-- Verified Maker Toggle -->
+        <div class="filter-group">
+          <label class="filter-checkbox-label" style="font-weight: 600; color: var(--dark);">
+            <input type="checkbox" name="verified_only" value="1" {{ 'checked' if verified_only else '' }}>
+            <span><i class="fa-solid fa-circle-check" style="color: #27AE60;"></i> Verified Makers Only</span>
+          </label>
+        </div>
+
+        <!-- Minimum Rating -->
+        <div class="filter-group">
+          <div class="filter-group-title">Minimum Rating</div>
+          <div class="filter-checkbox-list">
+            <label class="filter-checkbox-label">
+              <input type="radio" name="min_rating" value="" {{ 'checked' if not min_rating else '' }}>
+              <span>Any Rating</span>
+            </label>
+            <label class="filter-checkbox-label">
+              <input type="radio" name="min_rating" value="4.5" {{ 'checked' if min_rating == 4.5 else '' }}>
+              <span>4.5★ & above</span>
+            </label>
+            <label class="filter-checkbox-label">
+              <input type="radio" name="min_rating" value="4.0" {{ 'checked' if min_rating == 4.0 else '' }}>
+              <span>4.0★ & above</span>
+            </label>
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-block btn-sm" style="margin-top: 1rem;">
+          Apply Filters
+        </button>
+      </form>
+    </aside>
+
+    <!-- Products Content Area -->
+    <main>
+      <!-- Sort & Active Filters Toolbar -->
+      <div style="background: var(--bg-card); padding: 0.85rem 1.25rem; border-radius: 12px; border: var(--border-light); margin-bottom: 1.5rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
+        <div style="font-size: 0.9rem; color: var(--gray-dark);">
+          Showing <strong>{{ products|length }}</strong> results
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 0.75rem;">
+          <label for="sort-select" style="font-size: 0.88rem; font-weight: 600; color: var(--dark);">Sort By:</label>
+          <select id="sort-select" class="form-control" style="width: auto; padding: 0.4rem 0.8rem; font-size: 0.88rem;" onchange="const form = document.querySelector('#catalog-filter-form'); const hiddenSort = document.createElement('input'); hiddenSort.type='hidden'; hiddenSort.name='sort'; hiddenSort.value=this.value; form.appendChild(hiddenSort); form.submit();">
+            <option value="popular" {{ 'selected' if sort_by == 'popular' else '' }}>Most Popular</option>
+            <option value="rating" {{ 'selected' if sort_by == 'rating' else '' }}>Top Rated</option>
+            <option value="price_asc" {{ 'selected' if sort_by == 'price_asc' else '' }}>Price: Low to High</option>
+            <option value="price_desc" {{ 'selected' if sort_by == 'price_desc' else '' }}>Price: High to Low</option>
+            <option value="newest" {{ 'selected' if sort_by == 'newest' else '' }}>Newest Arrivals</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Product Cards Grid -->
+      {% if products %}
+        <div class="product-grid">
+          {% for product in products %}
+            <div class="product-card" id="product-card-{{ product.id }}">
+              <div class="product-image-container">
+                {% if product.image %}
+                  <img src="{{ url_for('uploaded_file', filename=product.image) }}" alt="{{ product.name }}" loading="lazy" style="width: 100%; height: 100%; object-fit: cover;">
+                {% else %}
+                  <div class="product-placeholder-graphic">
+                    {% if 'Halwa' in product.name or 'Sweet' in product.category or 'Pak' in product.name or 'Laddu' in product.name %}
+                      <i class="fa-solid fa-candy-cane"></i>
+                    {% elif 'Masala' in product.name or 'Powder' in product.name or 'Podi' in product.name %}
+                      <i class="fa-solid fa-mortar-pestle"></i>
+                    {% elif 'Pickle' in product.name %}
+                      <i class="fa-solid fa-jar"></i>
+                    {% elif 'Coffee' in product.name or 'Tea' in product.name %}
+                      <i class="fa-solid fa-mug-hot"></i>
+                    {% elif product.product_type == 'Fresh Food' %}
+                      <i class="fa-solid fa-bowl-rice"></i>
+                    {% else %}
+                      <i class="fa-solid fa-cookie-bite"></i>
+                    {% endif %}
+                    <span>{{ product.category }}</span>
+                  </div>
+                {% endif %}
+
+                <div class="product-card-badges">
+                  <span class="product-type-pill {{ 'pill-fresh' if product.product_type == 'Fresh Food' else 'pill-packaged' }}">
+                    {{ product.product_type }}
+                  </span>
+                  {% if product.net_quantity %}
+                    <span class="product-type-pill" style="background: rgba(28, 35, 33, 0.75); color: #FFFFFF; font-size: 0.72rem;">
+                      <i class="fa-solid fa-scale-balanced"></i> {{ product.net_quantity }}
+                    </span>
+                  {% endif %}
+                </div>
+              </div>
+
+              <div class="product-card-body">
+                <div class="product-maker-info">
+                  <span class="maker-name">
+                    <i class="fa-solid fa-store"></i> {{ product.food_maker.user.name if product.food_maker and product.food_maker.user else 'Traditional Maker' }}
+                  </span>
+                  {% if product.food_maker and product.food_maker.is_verified %}
+                    <span class="badge badge-verified" title="Verified Quality Maker"><i class="fa-solid fa-circle-check"></i> Verified</span>
+                  {% endif %}
+                </div>
+
+                <h3 class="product-title">
+                  <a href="{{ url_for('product.product_detail', product_id=product.id) }}">{{ product.name }}</a>
+                </h3>
+
+                <div class="product-location">
+                  <i class="fa-solid fa-location-dot"></i> {{ product.city }} {% if product.region %}• {{ product.region }}{% endif %}
+                </div>
+
+                <div class="product-rating-row">
+                  <div class="stars"><i class="fa-solid fa-star"></i></div>
+                  <span class="rating-score">{{ product.average_rating }}</span>
+                  <span class="rating-count">({{ product.rating_count }})</span>
+                </div>
+
+                <div class="product-card-footer">
+                  <div class="product-price">
+                    <span class="currency">₹</span>{{ "%.2f"|format(product.price) }}
+                    <span style="font-size: 0.75rem; color: var(--gray-medium); font-weight: 500;">/ {{ product.net_quantity or 'pack' }}</span>
+                  </div>
+                  <div style="display: flex; gap: 6px;">
+                    <a href="{{ url_for('product.product_detail', product_id=product.id) }}" class="btn btn-outline btn-sm">Details</a>
+                    <button class="btn btn-primary btn-sm btn-add-to-cart-ajax" data-product-id="{{ product.id }}" aria-label="Add to cart">
+                      <i class="fa-solid fa-cart-plus"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div style="background: var(--bg-card); border-radius: 16px; padding: 4rem 2rem; text-align: center; border: var(--border-light);">
+          <div style="width: 70px; height: 70px; border-radius: 50%; background: #FAF7F2; color: var(--gray-medium); display: flex; align-items: center; justify-content: center; font-size: 2rem; margin: 0 auto 1.25rem;">
+            <i class="fa-solid fa-magnifying-glass"></i>
+          </div>
+          <h3 style="font-size: 1.4rem; margin-bottom: 0.5rem;">No Regional Foods Found</h3>
+          <p style="color: var(--gray-dark); margin-bottom: 1.5rem; max-width: 450px; margin-left: auto; margin-right: auto;">
+            We couldn't find items matching your current filters. Try resetting filters or try our AI Regional Food Assistant!
+          </p>
+          <div style="display: flex; gap: 1rem; justify-content: center;">
+            <a href="{{ url_for('product.products_list') }}" class="btn btn-outline">Reset Filters</a>
+            <a href="{{ url_for('ai.food_assistant') }}" class="btn btn-primary"><i class="fa-solid fa-robot"></i> Ask AI Assistant</a>
+          </div>
+        </div>
+      {% endif %}
+    </main>
+  </div>
+</div>
+{% endblock %}

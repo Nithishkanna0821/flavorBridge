@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+
+{% block title %}My Food Products — FlavorBridge{% endblock %}
+
+{% block content %}
+<div class="container" style="padding: 3rem 1.25rem;">
+  
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2.5rem; flex-wrap: wrap; gap: 1rem;">
+    <div>
+      <h1 style="font-size: 2.2rem; margin-bottom: 0.35rem;"><i class="fa-solid fa-boxes-stacked" style="color: var(--primary);"></i> My Regional Catalog</h1>
+      <p style="color: var(--gray-dark); font-size: 0.95rem;">Manage your active food products, prices, stock levels, and recipes</p>
+    </div>
+
+    <a href="{{ url_for('product.add_product') }}" class="btn btn-primary">
+      <i class="fa-solid fa-plus"></i> Add New Product
+    </a>
+  </div>
+
+  {% if products %}
+    <div class="cart-table-wrapper">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Product Name</th>
+            <th>Category & Type</th>
+            <th>Price</th>
+            <th>Stock</th>
+            <th>Rating</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for p in products %}
+            <tr>
+              <td>
+                <strong style="font-size: 1rem; color: var(--dark); display: block;">
+                  <a href="{{ url_for('product.product_detail', product_id=p.id) }}">{{ p.name }}</a>
+                  {% if p.net_quantity %}
+                    <span class="badge" style="font-size: 0.72rem; background: #FAF7F2; color: #1C2321; border: 1px solid #ECE7DE; font-weight: 700; margin-left: 4px;">
+                      {{ p.net_quantity }}
+                    </span>
+                  {% endif %}
+                </strong>
+                <span style="font-size: 0.78rem; color: var(--gray-medium);">
+                  Prep Time: {{ p.preparation_time or '1 day' }}
+                </span>
+              </td>
+
+              <td>
+                <span class="badge badge-category" style="margin-bottom: 4px; display: inline-block;">{{ p.category }}</span>
+                <div>
+                  <span class="badge {{ 'badge-fresh' if p.product_type == 'Fresh Food' else 'badge-packaged' }}" style="font-size: 0.72rem;">
+                    {{ p.product_type }}
+                  </span>
+                </div>
+              </td>
+
+              <td style="font-weight: 800; font-family: var(--font-heading); color: var(--primary); font-size: 1.1rem;">
+                ₹{{ "%.2f"|format(p.price) }}
+              </td>
+
+              <td>
+                <span class="badge {{ 'badge-verified' if p.stock > 5 else ('badge-pending' if p.stock > 0 else 'badge-danger') }}">
+                  {{ p.stock }} units
+                </span>
+              </td>
+
+              <td>
+                <div class="stars" style="font-size: 0.85rem;">
+                  <i class="fa-solid fa-star"></i> {{ p.average_rating }}
+                  <span style="color: var(--gray-medium); font-size: 0.75rem;">({{ p.rating_count }})</span>
+                </div>
+              </td>
+
+              <td>
+                <div style="display: flex; gap: 0.5rem;">
+                  <a href="{{ url_for('product.edit_product', product_id=p.id) }}" class="btn btn-outline btn-sm" title="Edit Product">
+                    <i class="fa-solid fa-pen"></i>
+                  </a>
+                  
+                  <form method="POST" action="{{ url_for('product.delete_product', product_id=p.id) }}" onsubmit="return confirm('Are you sure you want to remove this product from your catalog?');">
+                    <button type="submit" class="btn btn-outline btn-sm" style="color: var(--danger); border-color: #FDEDEC; background: #FDEDEC;" title="Delete Product">
+                      <i class="fa-solid fa-trash-can"></i>
+                    </button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <div style="background: #FFFFFF; border-radius: 16px; padding: 4rem 2rem; text-align: center; border: var(--border-light); max-width: 550px; margin: 0 auto;">
+      <div style="width: 70px; height: 70px; border-radius: 50%; background: #FAF7F2; color: var(--gray-medium); display: flex; align-items: center; justify-content: center; font-size: 2rem; margin: 0 auto 1.25rem;">
+        <i class="fa-solid fa-bowl-food"></i>
+      </div>
+      <h3 style="font-size: 1.4rem; margin-bottom: 0.5rem;">No Products Listed Yet</h3>
+      <p style="color: var(--gray-dark); margin-bottom: 1.5rem;">Start listing your homemade spice mixes, traditional sweets, snacks, or regional dishes!</p>
+      <a href="{{ url_for('product.add_product') }}" class="btn btn-primary">
+        <i class="fa-solid fa-plus"></i> Add Your First Delicacy
+      </a>
+    </div>
+  {% endif %}
+
+</div>
+{% endblock %}

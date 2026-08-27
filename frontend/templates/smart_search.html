@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+
+{% block title %}Smart TF-IDF Search — FlavorBridge{% endblock %}
+
+{% block content %}
+<div class="container" style="padding: 3rem 1.25rem;">
+  
+  <div style="text-align: center; margin-bottom: 2.5rem;">
+    <span class="badge" style="background: rgba(211, 84, 0, 0.1); color: var(--primary); font-size: 0.85rem; padding: 0.35rem 0.85rem; margin-bottom: 0.5rem;">
+      <i class="fa-solid fa-brain"></i> Scikit-Learn TF-IDF Vectorization & Cosine Similarity
+    </span>
+    <h1 style="font-size: 2.3rem; margin-bottom: 0.5rem;">Smart Regional Food Search</h1>
+    <p style="color: var(--gray-dark); font-size: 1rem; max-width: 600px; margin: 0 auto;">
+      Search across product names, ingredients, culinary descriptions, and geographic regions with local NLP ranking.
+    </p>
+  </div>
+
+  <!-- Search Input Box -->
+  <div style="max-width: 700px; margin: 0 auto 3rem;">
+    <form method="GET" action="{{ url_for('ai.smart_search_view') }}" class="hero-search-box">
+      <i class="fa-solid fa-magnifying-glass search-icon"></i>
+      <input type="text" name="q" class="search-input" placeholder="Search natural queries (e.g., 'spicy Tamil food', 'healthy millet snacks')..." value="{{ query or '' }}" autofocus>
+      <button type="submit" class="btn btn-primary">Smart Search</button>
+    </form>
+
+    <div style="display: flex; gap: 0.5rem; justify-content: center; margin-top: 1rem; flex-wrap: wrap; font-size: 0.82rem;">
+      <span style="color: var(--gray-medium);">Try searching:</span>
+      <a href="{{ url_for('ai.smart_search_view', q='spicy Tamil food') }}" class="hero-quick-tag">spicy Tamil food</a>
+      <a href="{{ url_for('ai.smart_search_view', q='authentic sweets') }}" class="hero-quick-tag">authentic sweets</a>
+      <a href="{{ url_for('ai.smart_search_view', q='healthy millet snacks') }}" class="hero-quick-tag">healthy millet snacks</a>
+      <a href="{{ url_for('ai.smart_search_view', q='fresh biryani') }}" class="hero-quick-tag">fresh biryani</a>
+    </div>
+  </div>
+
+  <!-- Search Results with TF-IDF Relevance Breakdown -->
+  {% if query %}
+    <div class="section-header">
+      <div>
+        <h2 class="section-title">Search Results for "{{ query }}"</h2>
+        <p class="section-subtitle">Ranked by cosine similarity relevance across multi-field text corpus</p>
+      </div>
+    </div>
+
+    {% if results %}
+      <div class="product-grid">
+        {% for product, score in results %}
+          <div class="product-card">
+            <div class="product-image-container">
+              {% if product.image %}
+                <img src="{{ url_for('uploaded_file', filename=product.image) }}" alt="{{ product.name }}" loading="lazy" style="width: 100%; height: 100%; object-fit: cover;">
+              {% else %}
+                <div class="product-placeholder-graphic">
+                  <i class="fa-solid fa-utensils"></i>
+                  <span>{{ product.category }}</span>
+                </div>
+              {% endif %}
+              <div class="product-card-badges">
+                <span class="product-type-pill {{ 'pill-fresh' if product.product_type == 'Fresh Food' else 'pill-packaged' }}">
+                  {{ product.product_type }}
+                </span>
+                {% if product.net_quantity %}
+                  <span class="product-type-pill" style="background: rgba(28, 35, 33, 0.75); color: #FFFFFF; font-size: 0.72rem;">
+                    <i class="fa-solid fa-scale-balanced"></i> {{ product.net_quantity }}
+                  </span>
+                {% endif %}
+              </div>
+            </div>
+
+            <div class="product-card-body">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
+                <span style="font-size: 0.75rem; background: #FDF2E9; color: var(--primary); padding: 2px 6px; border-radius: 4px; font-weight: 700;">
+                  Relevance: {{ "%.0f"|format(score * 100) }}%
+                </span>
+                {% if product.food_maker and product.food_maker.is_verified %}
+                  <span class="badge badge-verified" style="font-size: 0.68rem;"><i class="fa-solid fa-circle-check"></i> Verified</span>
+                {% endif %}
+              </div>
+
+              <h3 class="product-title">
+                <a href="{{ url_for('product.product_detail', product_id=product.id) }}">{{ product.name }}</a>
+              </h3>
+
+              <div class="product-location">
+                <i class="fa-solid fa-location-dot"></i> {{ product.city }} • {{ product.food_maker.user.name }}
+              </div>
+
+              <p style="font-size: 0.8rem; color: var(--gray-dark); margin-bottom: 0.75rem;">
+                {{ product.description[:75] }}...
+              </p>
+
+              <div class="product-card-footer">
+                <div class="product-price">
+                  <span class="currency">₹</span>{{ "%.2f"|format(product.price) }}
+                  <span style="font-size: 0.75rem; color: var(--gray-medium); font-weight: 500;">/ {{ product.net_quantity or 'pack' }}</span>
+                </div>
+                <button class="btn btn-primary btn-sm btn-add-to-cart-ajax" data-product-id="{{ product.id }}">
+                  <i class="fa-solid fa-cart-plus"></i> Add
+                </button>
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div style="background: #FFFFFF; border-radius: 14px; padding: 3rem; text-align: center; border: var(--border-light);">
+        <p style="color: var(--gray-medium);">No matching products found for this query.</p>
+      </div>
+    {% endif %}
+  {% endif %}
+
+</div>
+{% endblock %}

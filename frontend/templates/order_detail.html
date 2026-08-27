@@ -1,0 +1,297 @@
+{% extends "base.html" %}
+
+{% block title %}Order Details #ORD-{{ "%05d"|format(order.id) }} — FlavorBridge{% endblock %}
+
+{% block content %}
+<div class="container container-narrow" style="padding: 3rem 1.25rem;">
+  
+  <!-- Breadcrumb & Header -->
+  <div style="margin-bottom: 2rem;">
+    <div style="font-size: 0.85rem; color: var(--gray-medium); margin-bottom: 0.4rem;">
+      {% if user_role == 'food_maker' %}
+        <a href="{{ url_for('food_maker.dashboard') }}">Maker Dashboard</a>
+      {% else %}
+        <a href="{{ url_for('order.customer_orders') }}">My Orders</a>
+      {% endif %}
+      &gt; <span>#ORD-{{ "%05d"|format(order.id) }}</span>
+    </div>
+    <div style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 1rem;">
+      <div>
+        <h1 style="font-size: 2.2rem; margin-bottom: 0.2rem;">Order #ORD-{{ "%05d"|format(order.id) }}</h1>
+        <p style="color: var(--gray-dark); font-size: 0.95rem;">
+          Placed on {{ order.created_at.strftime('%A, %B %d, %Y at %I:%M %p') }}
+        </p>
+      </div>
+      <div>
+        <span class="badge {% if order.status == 'Delivered' %}badge-verified{% elif order.status in ['Preparing', 'Shipped', 'Out for Delivery'] %}badge-fresh{% else %}badge-pending{% endif %}" style="font-size: 1rem; padding: 0.4rem 1rem;">
+          <i class="fa-solid fa-circle-dot"></i> {{ order.status }}
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Food Maker Status Control Panel (If Maker is viewing) -->
+  {% if user_role == 'food_maker' %}
+    <div style="background: #FEF9E7; border: 1px solid #F9E79F; border-radius: 14px; padding: 1.5rem; margin-bottom: 2rem;">
+      <h3 style="font-size: 1.15rem; color: #7D6608; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+        <i class="fa-solid fa-bell-concierge"></i> Food Maker Status Update Control
+      </h3>
+      <p style="font-size: 0.88rem; color: #7D6608; margin-bottom: 1rem;">
+        Update the progress of this regional order as you prepare and dispatch the delicacies.
+      </p>
+
+      <form method="POST" action="{{ url_for('order.update_order_status') }}" style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+        <input type="hidden" name="order_id" value="{{ order.id }}">
+        
+        <select name="status" class="form-control" style="width: auto; font-weight: 600;">
+          <option value="Pending" {{ 'selected' if order.status == 'Pending' else '' }}>1. Pending</option>
+          <option value="Accepted" {{ 'selected' if order.status == 'Accepted' else '' }}>2. Accepted</option>
+          <option value="Preparing" {{ 'selected' if order.status == 'Preparing' else '' }}>3. Preparing in Kitchen</option>
+          {% if order.has_fresh_food %}
+            <option value="Out for Delivery" {{ 'selected' if order.status == 'Out for Delivery' else '' }}>4. Out for Delivery (Fresh Flow)</option>
+          {% else %}
+            <option value="Shipped" {{ 'selected' if order.status == 'Shipped' else '' }}>4. Shipped / Dispatched (Packaged Flow)</option>
+          {% endif %}
+          <option value="Delivered" {{ 'selected' if order.status == 'Delivered' else '' }}>5. Delivered</option>
+          <option value="Cancelled" {{ 'selected' if order.status == 'Cancelled' else '' }}>Cancelled</option>
+        </select>
+
+        <button type="submit" class="btn btn-secondary btn-sm">
+          <i class="fa-solid fa-arrows-rotate"></i> Update Order Status
+        </button>
+      </form>
+    </div>
+  {% endif %}
+
+  <!-- Visual Timeline Stepper -->
+  {% set current_step = order.status_step %}
+  {% set is_fresh = order.has_fresh_food %}
+  <div style="background: #FFFFFF; border-radius: 16px; border: var(--border-light); padding: 2rem; margin-bottom: 2.5rem; box-shadow: var(--shadow-sm);">
+    <h3 style="font-size: 1.15rem; margin-bottom: 1.5rem; text-align: center;">Live Order Tracking Flow</h3>
+
+    <div class="order-stepper">
+      <!-- Step 1: Placed -->
+      <div class="step-node {{ 'completed' if current_step > 1 else ('active' if current_step == 1 else '') }}">
+        <div class="step-circle"><i class="fa-solid fa-receipt"></i></div>
+        <span class="step-label">Placed</span>
+      </div>
+
+      <!-- Step 2: Accepted -->
+      <div class="step-node {{ 'completed' if current_step > 2 else ('active' if current_step == 2 else '') }}">
+        <div class="step-circle"><i class="fa-solid fa-clipboard-check"></i></div>
+        <span class="step-label">Accepted</span>
+      </div>
+
+      <!-- Step 3: Preparing -->
+      <div class="step-node {{ 'completed' if current_step > 3 else ('active' if current_step == 3 else '') }}">
+        <div class="step-circle"><i class="fa-solid fa-fire-burner"></i></div>
+        <span class="step-label">Preparing</span>
+      </div>
+
+      <!-- Step 4: Shipped or Out for Delivery -->
+      <div class="step-node {{ 'completed' if current_step > 4 else ('active' if current_step == 4 else '') }}">
+        <div class="step-circle">
+          {% if is_fresh %}<i class="fa-solid fa-motorcycle"></i>{% else %}<i class="fa-solid fa-truck"></i>{% endif %}
+        </div>
+        <span class="step-label">{{ 'Out for Delivery' if is_fresh else 'Shipped' }}</span>
+      </div>
+
+      <!-- Step 5: Delivered -->
+      <div class="step-node {{ 'completed' if current_step == 5 else '' }}">
+        <div class="step-circle"><i class="fa-solid fa-circle-check"></i></div>
+        <span class="step-label">Delivered</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Direct Communication & Contact Exchange Section (Shared Only After Order Placed) -->
+  {% if user_role == 'customer' %}
+    <!-- Customer View: Food Maker Contact Card(s) -->
+    <div style="background: linear-gradient(135deg, #F9FBE7, #F1F8E9); border: 2px solid #8BC34A; border-radius: 18px; padding: 2rem; margin-bottom: 2.5rem; box-shadow: var(--shadow-sm);">
+      <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem; flex-wrap: wrap;">
+        <span class="badge badge-verified" style="font-size: 0.88rem; background: #2E7D32; color: #FFFFFF; padding: 0.4rem 0.85rem;">
+          <i class="fa-solid fa-lock-open"></i> Contact Details Unlocked
+        </span>
+        <h3 style="font-size: 1.3rem; margin: 0; color: #1B5E20;">Direct Food Maker Communication</h3>
+      </div>
+      <p style="color: #33691E; font-size: 0.92rem; margin-bottom: 1.5rem; line-height: 1.5;">
+        Since your order has been placed, the food maker's direct contact details are now accessible. You can call, WhatsApp, or email them directly regarding recipe preparation, spice levels, dietary preferences, or dispatch timing.
+      </p>
+
+      <div style="display: flex; flex-direction: column; gap: 1.25rem;">
+        {% for maker in unique_makers %}
+          <div style="background: #FFFFFF; border-radius: 14px; border: 1px solid #DCEDC8; padding: 1.5rem; display: flex; justify-content: space-between; align-items: center; gap: 1.5rem; flex-wrap: wrap; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
+            
+            <div style="display: flex; align-items: center; gap: 1.2rem; min-width: 260px;">
+              <div style="width: 56px; height: 56px; border-radius: 50%; background: linear-gradient(135deg, var(--secondary), #D35400); color: #FFFFFF; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: 700; flex-shrink: 0; box-shadow: var(--shadow-sm);">
+                {{ maker.user.name[:1] | upper }}
+              </div>
+              <div>
+                <div style="display: flex; align-items: center; gap: 6px;">
+                  <h4 style="margin: 0; font-size: 1.15rem; color: var(--dark);">{{ maker.user.name }}</h4>
+                  {% if maker.is_verified %}
+                    <i class="fa-solid fa-circle-check" style="color: var(--secondary);" title="Verified Maker"></i>
+                  {% endif %}
+                </div>
+                <div style="font-size: 0.85rem; color: var(--gray-dark); margin-top: 2px;">
+                  <i class="fa-solid fa-location-dot"></i> {{ maker.user.city }} • <i class="fa-solid fa-utensils"></i> {{ maker.speciality or 'Traditional Food Maker' }}
+                </div>
+                <div style="font-size: 0.88rem; color: var(--dark); margin-top: 6px; font-weight: 600;">
+                  <i class="fa-solid fa-phone" style="color: var(--secondary);"></i> Phone: {{ maker.user.phone or 'Not provided' }}
+                  <span style="margin: 0 6px; color: var(--gray-light);">|</span>
+                  <i class="fa-solid fa-envelope" style="color: var(--primary);"></i> {{ maker.user.email }}
+                </div>
+              </div>
+            </div>
+
+            <!-- Communication Action Buttons -->
+            <div style="display: flex; gap: 0.6rem; flex-wrap: wrap;">
+              {% if maker.user.phone %}
+                <a href="tel:{{ maker.user.phone }}" class="btn btn-primary btn-sm" style="font-size: 0.85rem; padding: 0.5rem 0.9rem;">
+                  <i class="fa-solid fa-phone"></i> Call Maker
+                </a>
+                <a href="https://wa.me/91{{ maker.user.phone | replace(' ', '') | replace('-', '') }}" target="_blank" class="btn btn-sm" style="background: #25D366; color: #FFFFFF; font-size: 0.85rem; padding: 0.5rem 0.9rem; border: none; font-weight: 700;">
+                  <i class="fa-brands fa-whatsapp"></i> WhatsApp
+                </a>
+              {% endif %}
+              <a href="mailto:{{ maker.user.email }}?subject=Question regarding FlavorBridge Order #ORD-{{ '%05d'|format(order.id) }}" class="btn btn-outline btn-sm" style="font-size: 0.85rem; padding: 0.5rem 0.9rem;">
+                <i class="fa-solid fa-envelope"></i> Email
+              </a>
+              <a href="{{ url_for('food_maker.food_maker_profile', maker_id=maker.id) }}" class="btn btn-outline-secondary btn-sm" style="font-size: 0.85rem; padding: 0.5rem 0.9rem;">
+                <i class="fa-solid fa-store"></i> Kitchen
+              </a>
+            </div>
+
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  {% else %}
+    <!-- Food Maker View: Customer Direct Contact Card -->
+    <div style="background: linear-gradient(135deg, #E3F2FD, #E8F8F5); border: 2px solid #29B6F6; border-radius: 18px; padding: 2rem; margin-bottom: 2.5rem; box-shadow: var(--shadow-sm);">
+      <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem; flex-wrap: wrap;">
+        <span class="badge badge-verified" style="font-size: 0.88rem; background: #0277BD; color: #FFFFFF; padding: 0.4rem 0.85rem;">
+          <i class="fa-solid fa-user-check"></i> Customer Contact Unlocked
+        </span>
+        <h3 style="font-size: 1.3rem; margin: 0; color: #01579B;">Customer Direct Communication & Delivery Details</h3>
+      </div>
+      <p style="color: #0277BD; font-size: 0.92rem; margin-bottom: 1.5rem; line-height: 1.5;">
+        This order has been confirmed. You can reach out directly to the customer for order confirmation, delivery coordination, or custom recipe requests.
+      </p>
+
+      <div style="background: #FFFFFF; border-radius: 14px; border: 1px solid #B3E5FC; padding: 1.5rem; display: flex; justify-content: space-between; align-items: center; gap: 1.5rem; flex-wrap: wrap;">
+        <div>
+          <h4 style="margin: 0 0 0.4rem; font-size: 1.2rem; color: var(--dark);">
+            <i class="fa-solid fa-user" style="color: var(--primary);"></i> {{ order.customer.name if order.customer else 'Customer' }}
+          </h4>
+          <div style="font-size: 0.92rem; color: var(--dark); margin-bottom: 0.4rem;">
+            <strong><i class="fa-solid fa-phone" style="color: var(--secondary);"></i> Phone:</strong> {{ order.phone }}
+            <span style="margin: 0 8px; color: var(--gray-light);">|</span>
+            <strong><i class="fa-solid fa-envelope" style="color: var(--primary);"></i> Email:</strong> {{ order.customer.email if order.customer else 'N/A' }}
+          </div>
+          <div style="font-size: 0.88rem; color: var(--gray-dark);">
+            <strong><i class="fa-solid fa-location-dot" style="color: #E65100;"></i> Delivery Address:</strong> {{ order.address }}, {{ order.city }}, {{ order.state }} - {{ order.pincode }}
+          </div>
+        </div>
+
+        <!-- Customer Communication Buttons -->
+        <div style="display: flex; gap: 0.6rem; flex-wrap: wrap;">
+          <a href="tel:{{ order.phone }}" class="btn btn-primary btn-sm" style="font-size: 0.85rem; padding: 0.5rem 0.9rem;">
+            <i class="fa-solid fa-phone"></i> Call Customer
+          </a>
+          <a href="https://wa.me/91{{ order.phone | replace(' ', '') | replace('-', '') }}" target="_blank" class="btn btn-sm" style="background: #25D366; color: #FFFFFF; font-size: 0.85rem; padding: 0.5rem 0.9rem; border: none; font-weight: 700;">
+            <i class="fa-brands fa-whatsapp"></i> WhatsApp
+          </a>
+          <a href="mailto:{{ order.customer.email if order.customer else '' }}?subject=Update regarding your FlavorBridge Order #ORD-{{ '%05d'|format(order.id) }}" class="btn btn-outline btn-sm" style="font-size: 0.85rem; padding: 0.5rem 0.9rem;">
+            <i class="fa-solid fa-envelope"></i> Email Customer
+          </a>
+        </div>
+      </div>
+    </div>
+  {% endif %}
+
+  <!-- Order Items & Customer Receipt Table -->
+  <div style="background: #FFFFFF; border-radius: 16px; border: var(--border-light); padding: 2rem; margin-bottom: 2.5rem; box-shadow: var(--shadow-sm);">
+    <h3 style="font-size: 1.25rem; margin-bottom: 1.25rem; border-bottom: 1px solid var(--gray-light); padding-bottom: 0.75rem;">
+      Delicacies in this Order
+    </h3>
+
+    <div style="display: flex; flex-direction: column; gap: 1.25rem;">
+      {% for item in order.items %}
+        <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 1rem; border-bottom: 1px solid #FAF7F2; flex-wrap: wrap; gap: 1rem;">
+          <div style="display: flex; align-items: center; gap: 1rem;">
+            <div style="width: 48px; height: 48px; border-radius: 10px; background: #FAF7F2; color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 1.3rem;">
+              <i class="fa-solid fa-utensils"></i>
+            </div>
+            <div>
+              <h4 style="font-size: 1.05rem; margin-bottom: 2px;">
+                {% if item.product %}
+                  <a href="{{ url_for('product.product_detail', product_id=item.product.id) }}">{{ item.product.name }}</a>
+                  {% if item.product.net_quantity %}
+                    <span class="badge" style="font-size: 0.72rem; background: #FAF7F2; color: #1C2321; border: 1px solid #ECE7DE; font-weight: 700; margin-left: 4px;">
+                      {{ item.product.net_quantity }}
+                    </span>
+                  {% endif %}
+                {% else %}
+                  Specialty Delicacy
+                {% endif %}
+              </h4>
+              <div style="font-size: 0.8rem; color: var(--gray-medium);">
+                Prepared by <strong>{{ item.food_maker.user.name if item.food_maker and item.food_maker.user else 'Verified Maker' }}</strong>
+                • Qty: {{ item.quantity }} × ₹{{ "%.2f"|format(item.price) }}
+              </div>
+            </div>
+          </div>
+
+          <div style="display: flex; align-items: center; gap: 1rem;">
+            <span style="font-weight: 800; font-size: 1.15rem; color: var(--dark); font-family: var(--font-heading);">
+              ₹{{ "%.2f"|format(item.subtotal) }}
+            </span>
+
+            {% if order.status == 'Delivered' and user_role == 'customer' and item.product %}
+              <a href="{{ url_for('product.product_detail', product_id=item.product.id) }}#review-section" class="btn btn-outline btn-sm" style="font-size: 0.78rem;">
+                <i class="fa-solid fa-star"></i> Review
+              </a>
+            {% endif %}
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+
+    <!-- Total Bill Breakdown -->
+    <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 2px dashed var(--gray-light); display: flex; justify-content: flex-end;">
+      <div style="width: 260px;">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-size: 0.9rem; color: var(--gray-dark);">
+          <span>Payment Method:</span>
+          <strong>{{ order.payment_method }}</strong>
+        </div>
+        <div style="display: flex; justify-content: space-between; font-size: 1.3rem; font-weight: 800; color: var(--primary); font-family: var(--font-heading);">
+          <span>Total Amount:</span>
+          <span>₹{{ "%.2f"|format(order.total_amount) }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delivery Information Summary Card -->
+  <div style="background: #FFFFFF; border-radius: 16px; border: var(--border-light); padding: 1.75rem; box-shadow: var(--shadow-sm); display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.5rem;">
+    <div>
+      <span style="font-size: 0.8rem; color: var(--gray-medium); text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;">Delivery Destination</span>
+      <p style="margin-top: 4px; font-size: 0.95rem; color: var(--dark); line-height: 1.5;">
+        <strong>{{ order.customer.name if order.customer else 'Customer' }}</strong><br>
+        {{ order.address }}<br>
+        {{ order.city }}, {{ order.state }} - {{ order.pincode }}
+      </p>
+    </div>
+
+    <div>
+      <span style="font-size: 0.8rem; color: var(--gray-medium); text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;">Customer Contact</span>
+      <p style="margin-top: 4px; font-size: 0.95rem; color: var(--dark); line-height: 1.5;">
+        <i class="fa-solid fa-phone" style="color: var(--secondary);"></i> {{ order.phone }}<br>
+        <i class="fa-solid fa-envelope" style="color: var(--primary);"></i> {{ order.customer.email if order.customer else '' }}
+      </p>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

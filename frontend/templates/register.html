@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+
+{% block title %}Create an Account — FlavorBridge{% endblock %}
+
+{% block content %}
+<div class="container container-narrow" style="padding: 3.5rem 1.25rem;">
+  <div class="form-card">
+    <div style="text-align: center; margin-bottom: 2rem;">
+      <h1 style="font-size: 2.2rem; margin-bottom: 0.35rem;">Join FlavorBridge</h1>
+      <p style="color: var(--gray-dark); font-size: 0.95rem;">Connect with regional makers and authentic heritage flavors</p>
+    </div>
+
+    <form method="POST" action="{{ url_for('auth.register') }}" data-validate="true">
+      <!-- Role Switcher -->
+      <div style="margin-bottom: 2rem; background: #FAF7F2; padding: 1rem; border-radius: 12px; border: 1px solid #ECE7DE;">
+        <label class="form-label" style="margin-bottom: 0.75rem; text-align: center; display: block;">Select Your Account Type</label>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+          <label style="display: flex; align-items: center; justify-content: center; gap: 0.5rem; background: #FFFFFF; padding: 0.75rem; border-radius: 8px; border: 1px solid #E2E8F0; cursor: pointer; font-weight: 600;">
+            <input type="radio" name="role" value="customer" id="role-customer" {{ 'checked' if role != 'food_maker' else '' }}>
+            <span><i class="fa-solid fa-basket-shopping" style="color: var(--primary);"></i> Customer</span>
+          </label>
+          <label style="display: flex; align-items: center; justify-content: center; gap: 0.5rem; background: #FFFFFF; padding: 0.75rem; border-radius: 8px; border: 1px solid #E2E8F0; cursor: pointer; font-weight: 600;">
+            <input type="radio" name="role" value="food_maker" id="role-food-maker" {{ 'checked' if role == 'food_maker' else '' }}>
+            <span><i class="fa-solid fa-store" style="color: var(--secondary);"></i> Food Maker</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Common Fields -->
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" for="reg-name">Full Name / Kitchen Name *</label>
+          <input type="text" id="reg-name" name="name" class="form-control" placeholder="e.g. Priya Sundaram" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="reg-email">Email Address *</label>
+          <input type="email" id="reg-email" name="email" class="form-control" placeholder="priya@example.com" required>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" for="reg-phone">Phone Number (10 digits) *</label>
+          <input type="tel" id="reg-phone" name="phone" class="form-control" placeholder="9876543210" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="reg-password">Password (min 6 characters) *</label>
+          <input type="password" id="reg-password" name="password" class="form-control" placeholder="••••••••" required minlength="6">
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" for="reg-city">City / Town *</label>
+          <input type="text" id="reg-city" name="city" class="form-control" placeholder="e.g. Chennai, Madurai, Dindigul" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="reg-address">Delivery / Kitchen Address *</label>
+          <input type="text" id="reg-address" name="address" class="form-control" placeholder="Street, Area, Pincode" required>
+        </div>
+      </div>
+
+      <!-- Food Maker Specific Extra Fields (Dynamically visible) -->
+      <div id="food-maker-extra-fields" style="display: {{ 'block' if role == 'food_maker' else 'none' }}; margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px dashed #D5C8B4;">
+        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem; color: var(--secondary);">
+          <i class="fa-solid fa-kitchen-set" style="font-size: 1.2rem;"></i>
+          <h3 style="font-size: 1.15rem; color: var(--secondary);">Food Maker Kitchen Profile</h3>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="maker-speciality">Food Speciality *</label>
+            <input type="text" id="maker-speciality" name="speciality" class="form-control" placeholder="e.g. Traditional Kari Dosa, Sweets, Podis">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="maker-experience">Years of Experience *</label>
+            <input type="number" id="maker-experience" name="years_experience" class="form-control" placeholder="e.g. 10" min="0" value="5">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="maker-cuisines">Regional Cuisines / Traditions *</label>
+          <input type="text" id="maker-cuisines" name="cuisines" class="form-control" placeholder="e.g. Madurai, Chettinad, South Indian">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="maker-description">Kitchen Story & Authentic Technique</label>
+          <textarea id="maker-description" name="description" class="form-control" rows="3" placeholder="Describe your heritage recipes, ingredients, and cooking philosophy..."></textarea>
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-block btn-lg" id="register-submit-btn" style="margin-top: 1.5rem;">
+        <i class="fa-solid fa-user-plus"></i> Create My Account
+      </button>
+    </form>
+
+    <div style="text-align: center; margin-top: 1.75rem; font-size: 0.9rem; color: var(--gray-dark);">
+      Already have an account? <a href="{{ url_for('auth.login') }}" style="font-weight: 700;">Log In</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

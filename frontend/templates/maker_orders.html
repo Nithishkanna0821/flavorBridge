@@ -1,0 +1,190 @@
+{% extends "base.html" %}
+
+{% block title %}Kitchen Orders — FlavorBridge Food Maker Portal{% endblock %}
+
+{% block content %}
+<div class="container" style="padding: 3rem 1.25rem;">
+  
+  <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 2.5rem; flex-wrap: wrap; gap: 1rem;">
+    <div>
+      <span class="badge badge-verified" style="font-size: 0.85rem; padding: 0.35rem 0.8rem; margin-bottom: 0.5rem;">
+        <i class="fa-solid fa-kitchen-set"></i> Kitchen Fulfillment
+      </span>
+      <h1 class="section-title">Incoming Customer Orders</h1>
+      <p class="section-subtitle">Manage preparation, packaging, and dispatch status for your handcrafted items</p>
+    </div>
+    
+    <div style="display: flex; gap: 0.75rem;">
+      <a href="{{ url_for('food_maker.dashboard') }}" class="btn btn-outline btn-sm">
+        <i class="fa-solid fa-gauge"></i> Dashboard
+      </a>
+      <a href="{{ url_for('product.add_product') }}" class="btn btn-primary btn-sm">
+        <i class="fa-solid fa-plus-circle"></i> + Add Dish
+      </a>
+    </div>
+  </div>
+
+  <!-- Status Filter Pills -->
+  <div style="display: flex; gap: 0.5rem; margin-bottom: 2rem; flex-wrap: wrap;">
+    <a href="{{ url_for('food_maker.food_maker_orders') }}" class="btn btn-sm {{ 'btn-primary' if not selected_status else 'btn-outline' }}">
+      All Orders ({{ orders|length if not selected_status else 'View' }})
+    </a>
+    <a href="{{ url_for('food_maker.food_maker_orders', status='Pending') }}" class="btn btn-sm {{ 'btn-primary' if selected_status == 'Pending' else 'btn-outline' }}">
+      Pending
+    </a>
+    <a href="{{ url_for('food_maker.food_maker_orders', status='Preparing') }}" class="btn btn-sm {{ 'btn-primary' if selected_status == 'Preparing' else 'btn-outline' }}">
+      Preparing
+    </a>
+    <a href="{{ url_for('food_maker.food_maker_orders', status='Shipped') }}" class="btn btn-sm {{ 'btn-primary' if selected_status == 'Shipped' else 'btn-outline' }}">
+      Shipped / Dispatched
+    </a>
+    <a href="{{ url_for('food_maker.food_maker_orders', status='Delivered') }}" class="btn btn-sm {{ 'btn-primary' if selected_status == 'Delivered' else 'btn-outline' }}">
+      Delivered
+    </a>
+  </div>
+
+  {% if orders %}
+    <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+      {% for order in orders %}
+        <div class="card" style="padding: 1.75rem; border-radius: 16px; border: var(--border-light); box-shadow: var(--shadow-sm); background: #FFFFFF;">
+          
+          <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 1.25rem; border-bottom: 1px solid var(--gray-light); flex-wrap: wrap; gap: 1rem;">
+            <div>
+              <span style="font-size: 0.78rem; text-transform: uppercase; color: var(--gray-medium); font-weight: 700;">Order Identifier</span>
+              <h3 style="font-size: 1.25rem; margin: 0; color: var(--dark);">
+                Order #{{ order.id }}
+                <span style="font-size: 0.85rem; font-weight: 500; color: var(--gray-medium); margin-left: 8px;">
+                  placed on {{ order.created_at.strftime('%b %d, %Y at %I:%M %p') }}
+                </span>
+              </h3>
+            </div>
+
+            <!-- Current Order Status Badge -->
+            <div>
+              {% if order.status == 'Pending' %}
+                <span class="badge badge-pending" style="font-size: 0.88rem; padding: 0.4rem 0.9rem;"><i class="fa-solid fa-hourglass-half"></i> Pending Acceptance</span>
+              {% elif order.status == 'Preparing' %}
+                <span class="badge" style="background: #E8F8F5; color: #117A65; border: 1px solid #A3E4D7; font-size: 0.88rem; padding: 0.4rem 0.9rem;"><i class="fa-solid fa-fire"></i> Freshly Preparing</span>
+              {% elif order.status == 'Shipped' or order.status == 'Out for Delivery' %}
+                <span class="badge" style="background: #EBF5FB; color: #2980B9; border: 1px solid #AED6F1; font-size: 0.88rem; padding: 0.4rem 0.9rem;"><i class="fa-solid fa-truck-fast"></i> {{ order.status }}</span>
+              {% elif order.status == 'Delivered' %}
+                <span class="badge badge-verified" style="font-size: 0.88rem; padding: 0.4rem 0.9rem;"><i class="fa-solid fa-circle-check"></i> Delivered</span>
+              {% else %}
+                <span class="badge badge-category" style="font-size: 0.88rem; padding: 0.4rem 0.9rem;">{{ order.status }}</span>
+              {% endif %}
+            </div>
+          </div>
+
+          <!-- Items Ordered from this Maker -->
+          <div style="padding: 1.25rem 0;">
+            <div style="font-size: 0.85rem; font-weight: 700; color: var(--gray-medium); text-transform: uppercase; margin-bottom: 0.75rem;">
+              Items in this Order
+            </div>
+            
+            <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+              {% for item in order.items %}
+                {% if item.food_maker_id == maker.id %}
+                  <div style="display: flex; justify-content: space-between; align-items: center; background: #FAF7F2; padding: 0.85rem 1.2rem; border-radius: 10px; border: 1px solid #ECE7DE;">
+                    <div style="display: flex; align-items: center; gap: 1rem;">
+                      {% if item.product and item.product.image %}
+                        <img src="{{ url_for('uploaded_file', filename=item.product.image) }}" alt="{{ item.product.name }}" style="width: 44px; height: 44px; border-radius: 8px; object-fit: cover;">
+                      {% else %}
+                        <div style="width: 44px; height: 44px; border-radius: 8px; background: #FFF3E0; color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 1.1rem;">
+                          <i class="fa-solid fa-utensils"></i>
+                        </div>
+                      {% endif %}
+                      <div>
+                        <strong style="font-size: 0.95rem; color: var(--dark);">{{ item.product.name if item.product else 'Specialty Item' }}</strong>
+                        {% if item.product and item.product.net_quantity %}
+                          <span class="badge" style="font-size: 0.72rem; background: #FFFFFF; color: #1C2321; border: 1px solid #ECE7DE; font-weight: 700; margin-left: 4px;">
+                            {{ item.product.net_quantity }}
+                          </span>
+                        {% endif %}
+                        <div style="font-size: 0.8rem; color: var(--gray-medium);">
+                          Unit Price: ₹{{ "%.2f"|format(item.price) }} • Quantity: <strong>{{ item.quantity }}</strong>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div style="font-weight: 800; font-size: 1.05rem; color: var(--primary);">
+                      ₹{{ "%.2f"|format(item.subtotal) }}
+                    </div>
+                  </div>
+                {% endif %}
+              {% endfor %}
+            </div>
+          </div>
+
+          <!-- Customer Communication & Delivery Details (Unlocked with Confirmed Order) -->
+          <div style="background: #F0F9FF; border: 1px solid #BAE6FD; border-radius: 12px; padding: 1.25rem; margin-top: 1.25rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; flex-wrap: wrap; gap: 0.5rem;">
+              <span class="badge badge-verified" style="font-size: 0.78rem; background: #0284C7; color: #FFFFFF; padding: 0.3rem 0.65rem;">
+                <i class="fa-solid fa-lock-open"></i> Customer Contact Unlocked
+              </span>
+              <span style="font-size: 0.8rem; color: #0369A1; font-weight: 600;">
+                <i class="fa-solid fa-money-bill-wave"></i> {{ order.payment_method }} (Collect ₹{{ "%.2f"|format(order.total_amount) }})
+              </span>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+              <div style="font-size: 0.88rem; color: var(--dark);">
+                <div><strong><i class="fa-solid fa-user" style="color: var(--primary);"></i> Customer:</strong> {{ order.customer.name }}</div>
+                <div style="margin-top: 3px;"><strong><i class="fa-solid fa-phone" style="color: var(--secondary);"></i> Phone:</strong> {{ order.phone }} &bull; <strong><i class="fa-solid fa-envelope" style="color: var(--primary);"></i> Email:</strong> {{ order.customer.email if order.customer else 'N/A' }}</div>
+                <div style="margin-top: 3px; color: var(--gray-dark);"><i class="fa-solid fa-location-dot" style="color: #E65100;"></i> <strong>Delivery Address:</strong> {{ order.address }}, {{ order.city }} - {{ order.pincode }}</div>
+              </div>
+
+              <!-- Quick Communication Action Buttons -->
+              <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                <a href="tel:{{ order.phone }}" class="btn btn-primary btn-sm" style="font-size: 0.8rem; padding: 0.4rem 0.75rem;">
+                  <i class="fa-solid fa-phone"></i> Call
+                </a>
+                <a href="https://wa.me/91{{ order.phone | replace(' ', '') | replace('-', '') }}" target="_blank" class="btn btn-sm" style="background: #25D366; color: #FFFFFF; font-size: 0.8rem; padding: 0.4rem 0.75rem; border: none; font-weight: 700;">
+                  <i class="fa-brands fa-whatsapp"></i> WhatsApp
+                </a>
+                <a href="mailto:{{ order.customer.email if order.customer else '' }}?subject=Update regarding your FlavorBridge Order #ORD-{{ '%05d'|format(order.id) }}" class="btn btn-outline btn-sm" style="font-size: 0.8rem; padding: 0.4rem 0.75rem;">
+                  <i class="fa-solid fa-envelope"></i> Email
+                </a>
+              </div>
+            </div>
+          </div>
+
+          <!-- Live Status Updater -->
+          <div style="display: flex; justify-content: flex-end; align-items: center; padding-top: 1rem; margin-top: 0.75rem; border-top: 1px solid var(--gray-light);">
+            <form method="POST" action="{{ url_for('order.update_order_status') }}" style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+              <input type="hidden" name="order_id" value="{{ order.id }}">
+              <label for="status-select-{{ order.id }}" style="font-size: 0.82rem; font-weight: 700; color: var(--gray-medium);">Update Status:</label>
+              <select name="status" id="status-select-{{ order.id }}" class="form-control" style="width: auto; padding: 0.4rem 0.85rem; font-size: 0.88rem; font-weight: 600;">
+                <option value="Pending" {{ 'selected' if order.status == 'Pending' else '' }}>Pending</option>
+                <option value="Accepted" {{ 'selected' if order.status == 'Accepted' else '' }}>Accepted</option>
+                <option value="Preparing" {{ 'selected' if order.status == 'Preparing' else '' }}>Preparing</option>
+                <option value="Shipped" {{ 'selected' if order.status == 'Shipped' else '' }}>Shipped</option>
+                <option value="Out for Delivery" {{ 'selected' if order.status == 'Out for Delivery' else '' }}>Out for Delivery</option>
+                <option value="Delivered" {{ 'selected' if order.status == 'Delivered' else '' }}>Delivered</option>
+                <option value="Cancelled" {{ 'selected' if order.status == 'Cancelled' else '' }}>Cancelled</option>
+              </select>
+              <button type="submit" class="btn btn-secondary btn-sm">Update Status</button>
+            </form>
+          </div>
+
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="card" style="padding: 4rem 2rem; text-align: center; border-radius: 16px;">
+      <div style="width: 80px; height: 80px; border-radius: 50%; background: #FAF7F2; color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 2rem; margin: 0 auto 1.5rem;">
+        <i class="fa-solid fa-receipt"></i>
+      </div>
+      <h3 style="font-size: 1.5rem; margin-bottom: 0.5rem;">No Orders Found</h3>
+      <p style="color: var(--gray-dark); margin-bottom: 1.5rem;">
+        {% if selected_status %}
+          No orders with status "{{ selected_status }}".
+        {% else %}
+          You don't have any customer orders yet. Add new regional dishes to your catalog to attract customers!
+        {% endif %}
+      </p>
+      <a href="{{ url_for('product.add_product') }}" class="btn btn-primary"><i class="fa-solid fa-plus-circle"></i> + Add Food Product</a>
+    </div>
+  {% endif %}
+
+</div>
+{% endblock %}

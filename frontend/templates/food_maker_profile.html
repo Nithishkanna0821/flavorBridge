@@ -1,0 +1,195 @@
+{% extends "base.html" %}
+
+{% block title %}{{ maker.user.name }} — Regional Food Maker Profile{% endblock %}
+
+{% block content %}
+<div class="container" style="padding: 3rem 1.25rem;">
+  
+  <!-- Food Maker Header Banner -->
+  <div style="background: #FFFFFF; border-radius: 20px; border: var(--border-light); padding: 2.5rem; margin-bottom: 3.5rem; box-shadow: var(--shadow-sm);">
+    <div style="display: flex; gap: 2rem; align-items: center; flex-wrap: wrap;">
+      
+      <div class="maker-avatar-placeholder" style="width: 100px; height: 100px; font-size: 2.5rem; font-weight: 700; background: linear-gradient(135deg, var(--secondary), #D35400); color: #FFFFFF; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 4px solid #FFFFFF; box-shadow: var(--shadow-md);">
+        {{ maker.user.name[:1] | upper }}
+      </div>
+
+      <div style="flex: 1; min-width: 280px;">
+        <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.4rem; flex-wrap: wrap;">
+          <h1 style="font-size: 2.2rem; margin: 0;">{{ maker.user.name }}</h1>
+          {% if maker.is_verified %}
+            <span class="badge badge-verified" style="font-size: 0.85rem; padding: 0.35rem 0.8rem;">
+              <i class="fa-solid fa-circle-check"></i> Verified Maker (Score: {{ maker.verification_score }}/100)
+            </span>
+          {% else %}
+            <span class="badge badge-pending">Score: {{ maker.verification_score }}/100</span>
+          {% endif %}
+        </div>
+
+        <div style="color: var(--gray-medium); font-size: 0.95rem; margin-bottom: 0.75rem;">
+          <i class="fa-solid fa-location-dot"></i> {{ maker.user.city }} • <i class="fa-solid fa-utensils"></i> {{ maker.cuisines or 'Regional Cuisine' }}
+        </div>
+
+        <p style="color: var(--gray-dark); font-size: 1rem; line-height: 1.6; margin-bottom: 1.25rem;">
+          {{ maker.description or 'Passionate traditional culinary maker committed to preserving authentic heritage flavors.' }}
+        </p>
+
+        <div style="display: flex; gap: 1.5rem; flex-wrap: wrap;">
+          <div>
+            <span style="font-size: 0.78rem; color: var(--gray-medium); text-transform: uppercase; font-weight: 700;">Experience</span>
+            <strong style="display: block; font-size: 1.05rem; color: var(--dark);">{{ maker.years_experience }} Years</strong>
+          </div>
+          <div>
+            <span style="font-size: 0.78rem; color: var(--gray-medium); text-transform: uppercase; font-weight: 700;">Speciality</span>
+            <strong style="display: block; font-size: 1.05rem; color: var(--dark);">{{ maker.speciality }}</strong>
+          </div>
+          <div>
+            <span style="font-size: 0.78rem; color: var(--gray-medium); text-transform: uppercase; font-weight: 700;">Rating</span>
+            <strong style="display: block; font-size: 1.05rem; color: #F39C12;">{{ maker.average_rating }}★ ({{ maker.total_reviews_count }})</strong>
+          </div>
+        </div>
+
+        <!-- Privacy Protection Notice -->
+        <div style="margin-top: 1.25rem; padding: 0.65rem 1rem; background: #F8F9F9; border-radius: 10px; border: 1px solid #E5E8E8; font-size: 0.82rem; color: #5D6D7E; display: flex; align-items: center; gap: 8px;">
+          <i class="fa-solid fa-shield-halved" style="color: var(--secondary); font-size: 1rem;"></i>
+          <span><strong>Contact Privacy Protected:</strong> Direct phone number and WhatsApp contact are securely shared immediately after you place an order for personalized recipe adjustments &amp; delivery coordination.</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Daily Ingredients & Dish Verification Live Banner (Refreshes Daily) -->
+  {% if maker.today_verification %}
+    {% set d_log = maker.today_verification %}
+    <div style="background: #FFFFFF; border-radius: 18px; border: 2px solid #27AE60; padding: 2rem; margin-bottom: 3.5rem; box-shadow: var(--shadow-sm);">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 0.5rem;">
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+          <span class="badge badge-verified" style="font-size: 0.95rem; padding: 0.4rem 0.9rem;">
+            <i class="fa-solid fa-sparkles"></i> ✨ Fresh Batch Verified Today ({{ d_log.log_date }})
+          </span>
+        </div>
+        <span style="font-size: 0.82rem; color: var(--gray-medium);">Logged by maker at {{ d_log.created_at.strftime('%I:%M %p') }}</span>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 180px 1fr; gap: 2rem; align-items: center;">
+        <div style="width: 180px; height: 140px; border-radius: 12px; overflow: hidden; background: #FAF7F2; border: 1px solid #ECE7DE; display: flex; align-items: center; justify-content: center;">
+          {% if d_log.dish_image %}
+            <img src="{{ url_for('uploaded_file', filename=d_log.dish_image) }}" alt="Today's Fresh Dish" style="width: 100%; height: 100%; object-fit: cover;">
+          {% else %}
+            <i class="fa-solid fa-utensils" style="font-size: 2.5rem; color: var(--primary);"></i>
+          {% endif %}
+        </div>
+
+        <div>
+          <h3 style="font-size: 1.25rem; color: var(--dark); margin-bottom: 0.4rem;">
+            Fresh Batch: {{ d_log.dishes_prepared or 'Daily Fresh Dishes' }}
+          </h3>
+          <div style="font-size: 0.92rem; color: var(--dark); margin-bottom: 0.5rem;">
+            <strong>Fresh Ingredients Used Today:</strong>
+            <p style="color: var(--gray-dark); margin: 2px 0 0.4rem; line-height: 1.5;">{{ d_log.ingredients_used }}</p>
+          </div>
+          {% if d_log.sourcing_notes %}
+            <div style="font-size: 0.85rem; color: var(--secondary);">
+              <i class="fa-solid fa-seedling"></i> <strong>Sourcing:</strong> {{ d_log.sourcing_notes }}
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  {% endif %}
+
+  <!-- Maker's Available Delicacies -->
+  <div style="margin-bottom: 3.5rem;">
+    <div class="section-header">
+      <div>
+        <h2 class="section-title">Authentic Delicacies by {{ maker.user.name }}</h2>
+        <p class="section-subtitle">Handcrafted recipes available for Cash on Delivery</p>
+      </div>
+    </div>
+
+    {% if products %}
+      <div class="product-grid">
+        {% for product in products %}
+          <div class="product-card">
+            <div class="product-image-container">
+              {% if product.image %}
+                <img src="{{ url_for('uploaded_file', filename=product.image) }}" alt="{{ product.name }}" loading="lazy" style="width: 100%; height: 100%; object-fit: cover;">
+              {% else %}
+                <div class="product-placeholder-graphic">
+                  <i class="fa-solid fa-utensils"></i>
+                  <span>{{ product.category }}</span>
+                </div>
+              {% endif %}
+              <div class="product-card-badges">
+                <span class="product-type-pill {{ 'pill-fresh' if product.product_type == 'Fresh Food' else 'pill-packaged' }}">
+                  {{ product.product_type }}
+                </span>
+                {% if product.net_quantity %}
+                  <span class="product-type-pill" style="background: rgba(28, 35, 33, 0.75); color: #FFFFFF; font-size: 0.72rem;">
+                    <i class="fa-solid fa-scale-balanced"></i> {{ product.net_quantity }}
+                  </span>
+                {% endif %}
+              </div>
+            </div>
+
+            <div class="product-card-body">
+              <h3 class="product-title">
+                <a href="{{ url_for('product.product_detail', product_id=product.id) }}">{{ product.name }}</a>
+              </h3>
+              <p style="font-size: 0.82rem; color: var(--gray-dark); margin-bottom: 0.75rem;">
+                {{ product.description[:80] }}...
+              </p>
+              <div class="product-card-footer">
+                <div class="product-price">
+                  <span class="currency">₹</span>{{ "%.2f"|format(product.price) }}
+                  <span style="font-size: 0.75rem; color: var(--gray-medium); font-weight: 500;">/ {{ product.net_quantity or 'pack' }}</span>
+                </div>
+                <div style="display: flex; gap: 6px;">
+                  <a href="{{ url_for('product.product_detail', product_id=product.id) }}" class="btn btn-outline btn-sm">Details</a>
+                  <button class="btn btn-primary btn-sm btn-add-to-cart-ajax" data-product-id="{{ product.id }}">
+                    <i class="fa-solid fa-cart-plus"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div style="background: #FFFFFF; border-radius: 14px; padding: 2.5rem; text-align: center; border: var(--border-light);">
+        <p style="color: var(--gray-medium);">This food maker has not listed products yet.</p>
+      </div>
+    {% endif %}
+  </div>
+
+  <!-- Reviews on Maker -->
+  {% if reviews %}
+    <div>
+      <div class="section-header">
+        <div>
+          <h2 class="section-title">Customer Feedback</h2>
+          <p class="section-subtitle">Reviews from food lovers who tasted this maker's cooking</p>
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.25rem;">
+        {% for rev in reviews %}
+          <div style="background: #FFFFFF; border-radius: 12px; border: var(--border-light); padding: 1.25rem; box-shadow: var(--shadow-sm);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+              <strong>{{ rev.customer.name if rev.customer else 'Customer' }}</strong>
+              <div class="stars" style="font-size: 0.85rem;">
+                {% for _ in range(rev.rating) %}<i class="fa-solid fa-star"></i>{% endfor %}
+              </div>
+            </div>
+            <p style="font-size: 0.88rem; color: var(--gray-dark); margin: 0;">"{{ rev.comment }}"</p>
+            <div style="font-size: 0.75rem; color: var(--gray-medium); margin-top: 0.5rem;">
+              {{ rev.created_at.strftime('%b %d, %Y') }}
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  {% endif %}
+
+</div>
+{% endblock %}

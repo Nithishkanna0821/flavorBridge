@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+
+{% block title %}Verified Regional Food Makers — FlavorBridge{% endblock %}
+
+{% block content %}
+<div class="container" style="padding: 3rem 1.25rem;">
+  
+  <div class="section-header" style="margin-bottom: 2rem;">
+    <div>
+      <h1 class="section-title">Verified Regional Food Makers</h1>
+      <p class="section-subtitle">Discover passionate home chefs and master artisans cooking authentic regional foods across India</p>
+    </div>
+  </div>
+
+  <!-- Maker Search & Filters Toolbar -->
+  <form method="GET" action="{{ url_for('food_maker.food_makers_list') }}" style="background: #FFFFFF; padding: 1.25rem; border-radius: 14px; border: var(--border-light); margin-bottom: 2.5rem; display: flex; gap: 1rem; flex-wrap: wrap; align-items: center; box-shadow: var(--shadow-sm);">
+    
+    <div style="flex: 1; min-width: 200px;">
+      <input type="text" name="cuisine" class="form-control" placeholder="Search by cuisine or speciality (e.g. Chettinad, Halwa, Snacks)..." value="{{ selected_cuisine or '' }}">
+    </div>
+
+    <div style="width: 200px;">
+      <select name="city" class="form-control">
+        <option value="">All Cities</option>
+        {% for c in cities %}
+          <option value="{{ c }}" {{ 'selected' if selected_city == c else '' }}>{{ c }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div style="display: flex; align-items: center; gap: 0.5rem;">
+      <label class="filter-checkbox-label" style="font-weight: 600;">
+        <input type="checkbox" name="verified" value="1" {{ 'checked' if verified_only else '' }}>
+        <span><i class="fa-solid fa-circle-check" style="color: #27AE60;"></i> Verified Only</span>
+      </label>
+    </div>
+
+    <button type="submit" class="btn btn-primary btn-sm">Filter Food Makers</button>
+    <a href="{{ url_for('food_maker.food_makers_list') }}" class="btn btn-outline btn-sm">Reset</a>
+  </form>
+
+  <!-- Food Makers Grid -->
+  {% if makers %}
+    <div class="makers-grid">
+      {% for maker in makers %}
+        <div class="maker-card">
+          <div class="maker-avatar-wrap">
+            <div class="maker-avatar-placeholder" style="background: linear-gradient(135deg, var(--secondary), #D35400); color: #FFFFFF; width: 76px; height: 76px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; font-weight: 700; border: 3px solid #FFFFFF; box-shadow: var(--shadow-sm);">
+              {{ maker.user.name[:1] | upper }}
+            </div>
+            {% if maker.is_verified %}
+              <div class="maker-verified-badge-float" title="Verified Food Maker"><i class="fa-solid fa-check"></i></div>
+            {% endif %}
+          </div>
+
+          <h3 class="maker-card-title">{{ maker.user.name }}</h3>
+          <div class="maker-city-tag"><i class="fa-solid fa-location-dot"></i> {{ maker.user.city }}</div>
+          
+          <div style="margin-bottom: 0.5rem;">
+            {% if maker.is_verified %}
+              <span class="badge badge-verified"><i class="fa-solid fa-shield-halved"></i> Verified Score: {{ maker.verification_score }}/100</span>
+            {% else %}
+              <span class="badge badge-pending">Score: {{ maker.verification_score }}/100</span>
+            {% endif %}
+          </div>
+
+          <p class="maker-speciality-text">{{ maker.speciality }}</p>
+
+          <div class="maker-stats-row">
+            <div class="maker-stat-col">
+              <span class="number">{{ maker.years_experience }}</span>
+              <span class="label">Yrs Exp</span>
+            </div>
+            <div class="maker-stat-col">
+              <span class="number">{{ maker.products|length }}</span>
+              <span class="label">Products</span>
+            </div>
+            <div class="maker-stat-col">
+              <span class="number">{{ maker.average_rating }}★</span>
+              <span class="label">Rating</span>
+            </div>
+          </div>
+
+          <a href="{{ url_for('food_maker.food_maker_profile', maker_id=maker.id) }}" class="btn btn-secondary btn-sm btn-block">
+            View Kitchen & Menu <i class="fa-solid fa-arrow-right"></i>
+          </a>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div style="background: #FFFFFF; border-radius: 14px; padding: 3rem; text-align: center; border: var(--border-light);">
+      <p style="color: var(--gray-medium);">No food makers found matching those filters.</p>
+    </div>
+  {% endif %}
+
+</div>
+{% endblock %}

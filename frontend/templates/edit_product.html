@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Product — {{ product.name }}{% endblock %}
+
+{% block content %}
+<div class="container container-narrow" style="padding: 3.5rem 1.25rem;">
+  <div class="form-card">
+    <div style="margin-bottom: 2rem;">
+      <div style="font-size: 0.85rem; color: var(--gray-medium); margin-bottom: 0.4rem;">
+        <a href="{{ url_for('product.my_products') }}">My Products</a> &gt; <span>Edit</span>
+      </div>
+      <h1 style="font-size: 2rem; margin-bottom: 0.35rem;">Edit {{ product.name }}</h1>
+      <p style="color: var(--gray-dark); font-size: 0.95rem;">Update pricing, stock availability, ingredients, or preparation time</p>
+    </div>
+
+    <form method="POST" action="{{ url_for('product.edit_product', product_id=product.id) }}" enctype="multipart/form-data">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" for="prod-name">Product Name *</label>
+          <input type="text" id="prod-name" name="name" class="form-control" value="{{ product.name }}" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="prod-category">Food Category *</label>
+          <select id="prod-category" name="category" class="form-control" required>
+            {% for cat in categories %}
+              <option value="{{ cat }}" {{ 'selected' if product.category == cat else '' }}>{{ cat }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" for="prod-price">Price (₹) *</label>
+          <input type="number" id="prod-price" name="price" class="form-control" value="{{ product.price }}" step="0.5" min="1" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="prod-stock">Available Stock Units *</label>
+          <input type="number" id="prod-stock" name="stock" class="form-control" value="{{ product.stock }}" min="0" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="prod-type">Product Type *</label>
+          <select id="prod-type" name="product_type" class="form-control" required>
+            <option value="Packaged Food" {{ 'selected' if product.product_type == 'Packaged Food' else '' }}>Packaged Food</option>
+            <option value="Fresh Food" {{ 'selected' if product.product_type == 'Fresh Food' else '' }}>Fresh Food</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="prod-net-qty">Package Weight / Net Quantity *</label>
+          <input type="text" id="prod-net-qty" name="net_quantity" class="form-control" value="{{ product.net_quantity or '250 grams' }}" placeholder="e.g. 500 grams, 150 grams, 250g" required>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" for="prod-prep-time">Preparation / Dispatch Time</label>
+          <input type="text" id="prod-prep-time" name="preparation_time" class="form-control" value="{{ product.preparation_time }}">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="prod-city">City Origin *</label>
+          <input type="text" id="prod-city" name="city" class="form-control" value="{{ product.city }}" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="prod-region">Regional Tradition</label>
+          <input type="text" id="prod-region" name="region" class="form-control" value="{{ product.region or '' }}">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="prod-ingredients">Authentic Ingredients *</label>
+        <textarea id="prod-ingredients" name="ingredients" class="form-control" rows="2" required>{{ product.ingredients }}</textarea>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="prod-description">Product Description *</label>
+        <textarea id="prod-description" name="description" class="form-control" rows="3" required>{{ product.description }}</textarea>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="prod-image">Change Product Image (Optional)</label>
+        <input type="file" id="prod-image" name="image" class="form-control" accept=".jpg,.jpeg,.png,.webp">
+        {% if product.image %}
+          <div style="font-size: 0.78rem; color: var(--gray-medium); margin-top: 4px;">
+            Current image filename: <code>{{ product.image }}</code>
+          </div>
+        {% endif %}
+      </div>
+
+      <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+        <button type="submit" class="btn btn-primary btn-lg">
+          <i class="fa-solid fa-floppy-disk"></i> Update Product
+        </button>
+        <a href="{{ url_for('product.my_products') }}" class="btn btn-outline btn-lg">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

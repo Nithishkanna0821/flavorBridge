@@ -1,0 +1,403 @@
+{% extends "base.html" %}
+
+{% block title %}FlavorBridge — Discover the Taste of Every Region{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section">
+  <div class="container">
+    <div class="hero-grid">
+      <div class="hero-content">
+        <div class="hero-tag">
+          <i class="fa-solid fa-fire-burner"></i> Authentic Regional Marketplace
+        </div>
+        <h1 class="hero-title">
+          Discover the Taste of <span class="highlight">Every Region</span>
+        </h1>
+        <p class="hero-subtitle">
+          Find authentic regional foods made by traditional food makers and enjoy flavors from across India.
+        </p>
+
+        <!-- CTA Action Buttons -->
+        <div class="hero-cta-group">
+          <a href="{{ url_for('product.products_list') }}" class="btn btn-primary btn-lg" id="hero-btn-explore">
+            <i class="fa-solid fa-compass"></i> Explore Foods
+          </a>
+          <a href="{{ url_for('auth.register', role='food_maker') }}" class="btn btn-outline btn-lg" id="hero-btn-maker">
+            <i class="fa-solid fa-kitchen-set"></i> Become a Food Maker
+          </a>
+        </div>
+
+        <!-- Integrated Search Bar -->
+        <div class="hero-search-box">
+          <i class="fa-solid fa-magnifying-glass search-icon"></i>
+          <input type="text" class="search-input" id="hero-search-input" placeholder="Search dish, spice, sweet, or city (e.g., Kari Dosa, Halwa, Madurai)...">
+          <button class="btn btn-primary" id="hero-search-submit-btn" onclick="const q = document.getElementById('hero-search-input').value; if(q) window.location.href='/products?q=' + encodeURIComponent(q);">
+            Search
+          </button>
+        </div>
+
+        <!-- Quick Tag Chips -->
+        <div class="hero-quick-tags">
+          <span>Popular:</span>
+          <a href="{{ url_for('product.products_list', q='Tirunelveli Halwa') }}" class="hero-quick-tag">Tirunelveli Halwa</a>
+          <a href="{{ url_for('product.products_list', q='Madurai Kari Dosa') }}" class="hero-quick-tag">Madurai Kari Dosa</a>
+          <a href="{{ url_for('product.products_list', q='Biryani Masala') }}" class="hero-quick-tag">Biryani Masala</a>
+          <a href="{{ url_for('product.products_list', q='Kumbakonam Degree Coffee') }}" class="hero-quick-tag">Degree Coffee</a>
+          <a href="{{ url_for('product.products_list', q='Murukku') }}" class="hero-quick-tag">Murukku</a>
+        </div>
+      </div>
+
+      <!-- Hero Visual Graphic Cards -->
+      <div class="hero-visual">
+        <div class="hero-main-card">
+          <div class="hero-dish-banner">
+            <img src="{{ url_for('static', filename='images/hero_food_banner.jpg') }}" alt="Authentic Regional Indian Delicacies" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;">
+            <div class="banner-overlay"></div>
+            <div class="banner-text">
+              <span class="badge badge-fresh" style="margin-bottom: 6px;"><i class="fa-solid fa-sparkles"></i> 100% Authentic Handcrafted</span>
+              <h4>Heritage Food Marketplace</h4>
+              <p style="font-size: 0.85rem; opacity: 0.95;">From traditional home kitchens directly to your doorstep</p>
+            </div>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1rem;">
+            <div>
+              <div style="font-size: 0.8rem; color: var(--gray-medium);">Verified Regional Network</div>
+              <strong style="color: var(--dark);">5+ Heritage Hubs • 35+ Regional Dishes</strong>
+            </div>
+            <span class="badge badge-verified"><i class="fa-solid fa-circle-check"></i> Quality Verified</span>
+          </div>
+
+          <!-- Floating Stat Badge 1 -->
+          <div class="hero-floating-stat">
+            <i class="fa-solid fa-award"></i>
+            <div>
+              <div style="font-weight: 800; font-size: 1.1rem; color: var(--dark);">100% Authentic</div>
+              <div style="font-size: 0.75rem; color: var(--gray-medium);">Heirloom Village Recipes</div>
+            </div>
+          </div>
+
+          <!-- Floating AI Badge 2 -->
+          <div class="hero-floating-ai">
+            <i class="fa-solid fa-wand-magic-sparkles"></i>
+            <div>
+              <div style="font-weight: 800; font-size: 0.95rem; color: var(--dark);">AI Discovery</div>
+              <div style="font-size: 0.72rem; color: var(--gray-medium);">Smart TF-IDF Search</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 1. Categories Section -->
+<section class="section">
+  <div class="container">
+    <div class="section-header">
+      <div>
+        <h2 class="section-title">Explore by Food Category</h2>
+        <p class="section-subtitle">Handcrafted specialties across authentic culinary traditions</p>
+      </div>
+      <a href="{{ url_for('product.products_list') }}" class="btn btn-outline btn-sm">View All Categories <i class="fa-solid fa-arrow-right"></i></a>
+    </div>
+
+    <div class="categories-grid">
+      {% for cat in category_highlights %}
+        <a href="{{ url_for('product.products_list', category=cat.name) }}" class="category-card" id="cat-card-{{ loop.index }}">
+          <div class="category-icon-wrapper">
+            <i class="fa-solid {{ cat.icon }}"></i>
+          </div>
+          <h3>{{ cat.name }}</h3>
+          <p>{{ cat.desc }}</p>
+        </a>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- 2. Popular Regional Foods Grid -->
+<section class="section section-alt">
+  <div class="container">
+    <div class="section-header">
+      <div>
+        <h2 class="section-title">Popular Regional Delicacies</h2>
+        <p class="section-subtitle">Top-rated homemade spice blends, crisps, sweets, and pickles</p>
+      </div>
+      <a href="{{ url_for('product.products_list') }}" class="btn btn-primary btn-sm">Explore All Foods <i class="fa-solid fa-arrow-right"></i></a>
+    </div>
+
+    <div class="product-grid">
+      {% for product in popular_foods %}
+        <div class="product-card" id="prod-card-{{ product.id }}">
+          <div class="product-image-container">
+            {% if product.image %}
+              <img src="{{ url_for('uploaded_file', filename=product.image) }}" alt="{{ product.name }}" loading="lazy" style="width: 100%; height: 100%; object-fit: cover;">
+            {% else %}
+              <div class="product-placeholder-graphic">
+                {% if 'Halwa' in product.name or 'Sweet' in product.category or 'Pak' in product.name or 'Laddu' in product.name %}
+                  <i class="fa-solid fa-candy-cane"></i>
+                {% elif 'Masala' in product.name or 'Powder' in product.name or 'Podi' in product.name %}
+                  <i class="fa-solid fa-mortar-pestle"></i>
+                {% elif 'Pickle' in product.name %}
+                  <i class="fa-solid fa-jar"></i>
+                {% elif 'Coffee' in product.name or 'Tea' in product.name %}
+                  <i class="fa-solid fa-mug-hot"></i>
+                {% elif product.product_type == 'Fresh Food' %}
+                  <i class="fa-solid fa-bowl-rice"></i>
+                {% else %}
+                  <i class="fa-solid fa-cookie-bite"></i>
+                {% endif %}
+                <span>{{ product.category }}</span>
+              </div>
+            {% endif %}
+
+            <div class="product-card-badges">
+              <span class="product-type-pill {{ 'pill-fresh' if product.product_type == 'Fresh Food' else 'pill-packaged' }}">
+                {{ product.product_type }}
+              </span>
+              {% if product.net_quantity %}
+                <span class="product-type-pill" style="background: rgba(28, 35, 33, 0.75); color: #FFFFFF; font-size: 0.72rem;">
+                  <i class="fa-solid fa-scale-balanced"></i> {{ product.net_quantity }}
+                </span>
+              {% endif %}
+            </div>
+          </div>
+
+          <div class="product-card-body">
+            <div class="product-maker-info">
+              <span class="maker-name">
+                <i class="fa-solid fa-store"></i> {{ product.food_maker.user.name if product.food_maker and product.food_maker.user else 'Verified Maker' }}
+              </span>
+              {% if product.food_maker and product.food_maker.is_verified %}
+                <span class="badge badge-verified" title="Internal Verified Maker"><i class="fa-solid fa-circle-check"></i> Verified</span>
+              {% endif %}
+            </div>
+
+            <h3 class="product-title">
+              <a href="{{ url_for('product.product_detail', product_id=product.id) }}">{{ product.name }}</a>
+            </h3>
+
+            <div class="product-location">
+              <i class="fa-solid fa-location-dot"></i> {{ product.city }} {% if product.region %}• {{ product.region }}{% endif %}
+            </div>
+
+            <div class="product-rating-row">
+              <div class="stars">
+                <i class="fa-solid fa-star"></i>
+              </div>
+              <span class="rating-score">{{ product.average_rating }}</span>
+              <span class="rating-count">({{ product.rating_count }} reviews)</span>
+            </div>
+
+            <div class="product-card-footer">
+              <div class="product-price">
+                <span class="currency">₹</span>{{ "%.2f"|format(product.price) }}
+                <span style="font-size: 0.75rem; color: var(--gray-medium); font-weight: 500;">/ {{ product.net_quantity or 'pack' }}</span>
+              </div>
+              <div style="display: flex; gap: 6px;">
+                <a href="{{ url_for('product.product_detail', product_id=product.id) }}" class="btn btn-outline btn-sm">Details</a>
+                <button class="btn btn-primary btn-sm btn-add-to-cart-ajax" data-product-id="{{ product.id }}" aria-label="Add to cart">
+                  <i class="fa-solid fa-cart-plus"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- 3. Fresh Regional Foods Spotlight -->
+<section class="section">
+  <div class="container">
+    <div class="section-header">
+      <div>
+        <span class="badge badge-fresh" style="margin-bottom: 0.5rem;"><i class="fa-solid fa-fire"></i> Freshly Prepared</span>
+        <h2 class="section-title">Fresh Regional Delicacies & Meals</h2>
+        <p class="section-subtitle">Hot, freshly cooked regional classics prepared on-demand by traditional home chefs</p>
+      </div>
+      <a href="{{ url_for('product.products_list', product_type='Fresh Food') }}" class="btn btn-outline btn-sm">View All Fresh Meals <i class="fa-solid fa-arrow-right"></i></a>
+    </div>
+
+    <div class="product-grid">
+      {% for product in fresh_foods %}
+        <div class="product-card">
+          <div class="product-image-container">
+            {% if product.image %}
+              <img src="{{ url_for('uploaded_file', filename=product.image) }}" alt="{{ product.name }}" loading="lazy" style="width: 100%; height: 100%; object-fit: cover;">
+            {% else %}
+              <div class="product-placeholder-graphic" style="color: var(--secondary); background: linear-gradient(135deg, #E8F8F5, #D1F2EB);">
+                <i class="fa-solid fa-utensils"></i>
+                <span>{{ product.preparation_time or '30-45 mins' }}</span>
+              </div>
+            {% endif %}
+            <div class="product-card-badges">
+              <span class="product-type-pill pill-fresh"><i class="fa-solid fa-clock"></i> {{ product.preparation_time }}</span>
+              {% if product.net_quantity %}
+                <span class="product-type-pill" style="background: rgba(25, 111, 61, 0.85); color: #FFFFFF; font-size: 0.72rem;">
+                  <i class="fa-solid fa-scale-balanced"></i> {{ product.net_quantity }}
+                </span>
+              {% endif %}
+            </div>
+          </div>
+
+          <div class="product-card-body">
+            <div class="product-maker-info">
+              <span class="maker-name">{{ product.food_maker.user.name }}</span>
+              {% if product.food_maker.is_verified %}
+                <span class="badge badge-verified"><i class="fa-solid fa-circle-check"></i> Verified</span>
+              {% endif %}
+            </div>
+
+            <h3 class="product-title">
+              <a href="{{ url_for('product.product_detail', product_id=product.id) }}">{{ product.name }}</a>
+            </h3>
+
+            <p style="font-size: 0.82rem; color: var(--gray-dark); margin-bottom: 0.75rem; line-height: 1.4;">
+              {{ product.description[:90] }}...
+            </p>
+
+            <div class="product-card-footer">
+              <div class="product-price">
+                <span class="currency">₹</span>{{ "%.2f"|format(product.price) }}
+                <span style="font-size: 0.75rem; color: var(--gray-medium); font-weight: 500;">/ {{ product.net_quantity or 'portion' }}</span>
+              </div>
+              <button class="btn btn-primary btn-sm btn-add-to-cart-ajax" data-product-id="{{ product.id }}">
+                <i class="fa-solid fa-cart-plus"></i> Order Fresh
+              </button>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- 4. Featured Verified Food Makers -->
+<section class="section section-alt">
+  <div class="container">
+    <div class="section-header">
+      <div>
+        <h2 class="section-title">Meet Our Verified Traditional Food Makers</h2>
+        <p class="section-subtitle">Experienced regional culinary masters with verified quality scores</p>
+      </div>
+      <a href="{{ url_for('food_maker.food_makers_list') }}" class="btn btn-secondary btn-sm">All Food Makers <i class="fa-solid fa-arrow-right"></i></a>
+    </div>
+
+    <div class="makers-grid">
+      {% for maker in featured_makers %}
+        <div class="maker-card" id="maker-card-{{ maker.id }}">
+          <div class="maker-avatar-wrap">
+            <div class="maker-avatar-placeholder" style="background: linear-gradient(135deg, var(--secondary), #D35400); color: #FFFFFF; width: 76px; height: 76px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; font-weight: 700; border: 3px solid #FFFFFF; box-shadow: var(--shadow-sm);">
+              {{ maker.user.name[:1] | upper }}
+            </div>
+            {% if maker.is_verified %}
+              <div class="maker-verified-badge-float" title="Verified Food Maker"><i class="fa-solid fa-check"></i></div>
+            {% endif %}
+          </div>
+
+          <h3 class="maker-card-title">{{ maker.user.name }}</h3>
+          <div class="maker-city-tag"><i class="fa-solid fa-location-dot"></i> {{ maker.user.city }}</div>
+          
+          <div style="margin-bottom: 0.5rem;">
+            <span class="badge badge-verified">Score: {{ maker.verification_score }}/100</span>
+          </div>
+
+          <p class="maker-speciality-text">{{ maker.speciality }}</p>
+
+          <div class="maker-stats-row">
+            <div class="maker-stat-col">
+              <span class="number">{{ maker.years_experience }}</span>
+              <span class="label">Yrs Exp</span>
+            </div>
+            <div class="maker-stat-col">
+              <span class="number">{{ maker.products|length }}</span>
+              <span class="label">Products</span>
+            </div>
+            <div class="maker-stat-col">
+              <span class="number">{{ maker.average_rating }}★</span>
+              <span class="label">Rating</span>
+            </div>
+          </div>
+
+          <a href="{{ url_for('food_maker.food_maker_profile', maker_id=maker.id) }}" class="btn btn-outline-secondary btn-sm btn-block">
+            View Regional Kitchen
+          </a>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- 5. Popular Food Cities Across India -->
+<section class="section">
+  <div class="container">
+    <div class="section-header text-center" style="justify-content: center; text-align: center;">
+      <div>
+        <h2 class="section-title">Flavors by Popular Indian Food Hubs</h2>
+        <p class="section-subtitle">Click to discover region-specific authentic delicacies</p>
+      </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 1.25rem;">
+      {% for city in popular_cities %}
+        <a href="{{ url_for('product.products_list', city=city.name) }}" class="category-card" style="text-align: center; align-items: center;">
+          <div class="category-icon-wrapper" style="background: var(--secondary-light); color: var(--secondary);">
+            <i class="fa-solid fa-city"></i>
+          </div>
+          <h3 style="font-size: 1.1rem;">{{ city.name }}</h3>
+          <p style="font-size: 0.8rem; color: var(--gray-medium);">{{ city.cuisine }}</p>
+          <span class="badge badge-category" style="margin-top: 4px;">{{ city.count }}</span>
+        </a>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- 6. How It Works Section -->
+<section class="section section-alt">
+  <div class="container">
+    <div class="section-header text-center" style="justify-content: center; text-align: center; margin-bottom: 3rem;">
+      <div>
+        <h2 class="section-title">How FlavorBridge Works</h2>
+        <p class="section-subtitle">Empowering regional culinary creators & delivering authentic flavors</p>
+      </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem;">
+      <div style="background: #FFFFFF; border-radius: 14px; padding: 2rem 1.5rem; text-align: center; border: 1px solid #ECE7DE;">
+        <div style="width: 60px; height: 60px; border-radius: 50%; background: #FDF2E9; color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; margin: 0 auto 1.25rem; font-weight: 800;">1</div>
+        <h3 style="font-size: 1.15rem; margin-bottom: 0.5rem;">Browse & AI Match</h3>
+        <p style="font-size: 0.88rem; color: var(--gray-dark);">Explore by region, taste, or chat with our Regional Food Assistant to discover authentic recipes.</p>
+      </div>
+
+      <div style="background: #FFFFFF; border-radius: 14px; padding: 2rem 1.5rem; text-align: center; border: 1px solid #ECE7DE;">
+        <div style="width: 60px; height: 60px; border-radius: 50%; background: #EAFAF1; color: var(--secondary); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; margin: 0 auto 1.25rem; font-weight: 800;">2</div>
+        <h3 style="font-size: 1.15rem; margin-bottom: 0.5rem;">Handcrafted with Care</h3>
+        <p style="font-size: 0.88rem; color: var(--gray-dark);">Verified makers stone-grind spices, bake fresh sweets, and cook regional meals on demand.</p>
+      </div>
+
+      <div style="background: #FFFFFF; border-radius: 14px; padding: 2rem 1.5rem; text-align: center; border: 1px solid #ECE7DE;">
+        <div style="width: 60px; height: 60px; border-radius: 50%; background: #FEF9E7; color: #B7950B; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; margin: 0 auto 1.25rem; font-weight: 800;">3</div>
+        <h3 style="font-size: 1.15rem; margin-bottom: 0.5rem;">Cash on Delivery</h3>
+        <p style="font-size: 0.88rem; color: var(--gray-dark);">Pay safely upon receipt of your authentic regional delicacy right at your doorstep.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Call to Action Banner -->
+<section style="background: linear-gradient(135deg, var(--primary) 0%, #BA4A00 100%); color: #FFFFFF; padding: 4rem 0;">
+  <div class="container text-center" style="text-align: center;">
+    <h2 style="font-size: 2.3rem; color: #FFFFFF; margin-bottom: 1rem;">Are You a Traditional Cook or Food Maker?</h2>
+    <p style="font-size: 1.1rem; opacity: 0.95; max-width: 650px; margin: 0 auto 2rem;">
+      Share your heritage recipes with food lovers nationwide. Get verified and start receiving orders today.
+    </p>
+    <a href="{{ url_for('auth.register', role='food_maker') }}" class="btn btn-secondary btn-lg" style="background: #FFFFFF; color: var(--primary);">
+      <i class="fa-solid fa-store"></i> Register as a Food Maker
+    </a>
+  </div>
+</section>
+{% endblock %}

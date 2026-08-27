@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+
+{% block title %}Local Recipe Partner Matcher — FlavorBridge{% endblock %}
+
+{% block content %}
+<div class="container" style="padding: 3rem 1.25rem;">
+  
+  <!-- Header -->
+  <div style="text-align: center; margin-bottom: 3rem;">
+    <div style="display: inline-flex; align-items: center; gap: 0.5rem; background: var(--secondary-light); color: var(--secondary); padding: 0.4rem 1rem; border-radius: 999px; font-weight: 700; font-size: 0.85rem; margin-bottom: 0.75rem;">
+      <i class="fa-solid fa-user-group"></i> Proximity & Cuisine Matching Algorithm
+    </div>
+    <h1 style="font-size: 2.3rem; margin-bottom: 0.5rem;">Find a Local Recipe Partner</h1>
+    <p style="color: var(--gray-dark); font-size: 1rem; max-width: 650px; margin: 0 auto;">
+      Connect with verified regional culinary makers and home chefs who specialize in the exact authentic regional dish you desire.
+    </p>
+  </div>
+
+  <!-- Matcher Input Form -->
+  <div class="form-card" style="margin-bottom: 3rem; background: #FFFFFF;">
+    <form method="GET" action="{{ url_for('ai.recipe_partners') }}" style="display: grid; grid-template-columns: 1.5fr 1fr auto; gap: 1rem; align-items: flex-end;">
+      
+      <div class="form-group" style="margin-bottom: 0;">
+        <label class="form-label" for="dish-input"><i class="fa-solid fa-utensils" style="color: var(--primary);"></i> Requested Dish / Recipe</label>
+        <input type="text" id="dish-input" name="dish" class="form-control" placeholder="e.g., Madurai Kari Dosa, Biryani Masala, Halwa..." value="{{ dish_query or '' }}" required>
+      </div>
+
+      <div class="form-group" style="margin-bottom: 0;">
+        <label class="form-label" for="city-select"><i class="fa-solid fa-location-dot" style="color: var(--secondary);"></i> Your City / Location</label>
+        <select id="city-select" name="city" class="form-control">
+          <option value="">All Regions</option>
+          {% for c in cities %}
+            <option value="{{ c }}" {{ 'selected' if city_query == c else '' }}>{{ c }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-lg" style="height: 48px;">
+        <i class="fa-solid fa-magnifying-glass"></i> Match Makers
+      </button>
+    </form>
+  </div>
+
+  <!-- Matched Results List -->
+  {% if matched_partners %}
+    <div>
+      <div class="section-header">
+        <div>
+          <h2 class="section-title">Matched Culinary Partners</h2>
+          <p class="section-subtitle">Ranked by cuisine speciality match, locality proximity, and verified credentials</p>
+        </div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+        {% for match in matched_partners %}
+          {% set maker = match.maker %}
+          {% set m_user = match.user %}
+
+          <div class="matcher-card">
+            <!-- Left: Match Score Radial/Badge -->
+            <div class="matcher-score-badge">
+              <span class="percent">{{ match.match_score }}%</span>
+              <span class="label">Match Score</span>
+            </div>
+
+            <!-- Center: Maker Info & Matching Reasons -->
+            <div>
+              <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.25rem; flex-wrap: wrap;">
+                <h3 style="font-size: 1.35rem; margin: 0; color: var(--dark);">{{ m_user.name }}</h3>
+                {% if maker.is_verified %}
+                  <span class="badge badge-verified"><i class="fa-solid fa-circle-check"></i> Verified Maker</span>
+                {% endif %}
+              </div>
+
+              <div style="font-size: 0.88rem; color: var(--gray-medium); margin-bottom: 0.75rem;">
+                <i class="fa-solid fa-location-dot"></i> {{ m_user.city }} • {{ match.experience_years }} yrs experience • <strong style="color: #F39C12;">{{ maker.average_rating }}★</strong>
+              </div>
+
+              <!-- Matched Reasons Chips -->
+              <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.75rem;">
+                {% for reason in match.reasons %}
+                  <span style="font-size: 0.78rem; background: #EAFAF1; color: #196F3D; padding: 2px 8px; border-radius: 4px; font-weight: 600; border: 1px solid #D5F5E3;">
+                    ✓ {{ reason }}
+                  </span>
+                {% endfor %}
+              </div>
+
+              <!-- Available Products by this Maker -->
+              {% if match.matching_products %}
+                <div style="font-size: 0.82rem; color: var(--gray-dark); margin-top: 0.5rem;">
+                  <strong>Available Menu Items:</strong> 
+                  {% for p in match.matching_products %}
+                    <a href="{{ url_for('product.product_detail', product_id=p.id) }}" style="color: var(--primary); text-decoration: underline; margin-right: 6px;">{{ p.name }} (₹{{ p.price }})</a>
+                  {% endfor %}
+                </div>
+              {% endif %}
+            </div>
+
+            <!-- Right: Action CTA -->
+            <div style="text-align: right; display: flex; flex-direction: column; gap: 0.5rem;">
+              <a href="{{ url_for('food_maker.food_maker_profile', maker_id=maker.id) }}" class="btn btn-secondary btn-sm btn-block">
+                View Kitchen
+              </a>
+              <a href="{{ url_for('product.products_list', city=m_user.city) }}" class="btn btn-outline btn-sm btn-block">
+                Browse Dishes
+              </a>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  {% else %}
+    <div style="background: #FFFFFF; border-radius: 14px; padding: 3rem; text-align: center; border: var(--border-light);">
+      <p style="color: var(--gray-medium);">No recipe partners found for this specific query. Try searching for other regional dishes!</p>
+    </div>
+  {% endif %}
+
+</div>
+{% endblock %}

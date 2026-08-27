@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% block title %}My Orders — FlavorBridge{% endblock %}
+
+{% block content %}
+<div class="container" style="padding: 3rem 1.25rem;">
+  <div style="margin-bottom: 2rem;">
+    <h1 style="font-size: 2.2rem; margin-bottom: 0.35rem;"><i class="fa-solid fa-receipt" style="color: var(--primary);"></i> My Orders</h1>
+    <p style="color: var(--gray-dark); font-size: 0.95rem;">Track your past and active orders from regional food makers</p>
+  </div>
+
+  {% if orders %}
+    <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+      {% for order in orders %}
+        <div style="background: #FFFFFF; border-radius: 16px; border: var(--border-light); padding: 1.5rem 1.75rem; box-shadow: var(--shadow-sm); display: flex; flex-direction: column; gap: 1.25rem;">
+          
+          <!-- Order Card Header -->
+          <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--gray-light); padding-bottom: 1rem; flex-wrap: wrap; gap: 0.75rem;">
+            <div>
+              <strong style="font-size: 1.1rem; color: var(--dark);">Order #ORD-{{ "%05d"|format(order.id) }}</strong>
+              <div style="font-size: 0.8rem; color: var(--gray-medium); margin-top: 2px;">
+                Placed on {{ order.created_at.strftime('%b %d, %Y at %I:%M %p') }}
+              </div>
+            </div>
+
+            <div style="display: flex; align-items: center; gap: 1rem;">
+              <span class="badge {% if order.status == 'Delivered' %}badge-verified{% elif order.status in ['Preparing', 'Shipped', 'Out for Delivery'] %}badge-fresh{% else %}badge-pending{% endif %}" style="font-size: 0.85rem; padding: 0.35rem 0.85rem;">
+                <i class="fa-solid fa-circle-dot"></i> {{ order.status }}
+              </span>
+              <a href="{{ url_for('order.order_detail', order_id=order.id) }}" class="btn btn-outline btn-sm">
+                Track Order <i class="fa-solid fa-chevron-right"></i>
+              </a>
+            </div>
+          </div>
+
+          <!-- Order Items Snippets -->
+          <div style="display: grid; grid-template-columns: 1fr auto; gap: 1.5rem; align-items: center;">
+            <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+              {% for item in order.items %}
+                <div style="display: flex; align-items: center; gap: 0.75rem; font-size: 0.92rem;">
+                  <div style="width: 32px; height: 32px; border-radius: 6px; background: #FAF7F2; color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 0.9rem;">
+                    <i class="fa-solid fa-utensils"></i>
+                  </div>
+                  <span>
+                    <strong>{{ item.quantity }}x</strong> {{ item.product.name if item.product else 'Specialty Item' }} 
+                    <span style="color: var(--gray-medium); font-size: 0.82rem;">(₹{{ "%.2f"|format(item.price) }})</span>
+                  </span>
+                </div>
+              {% endfor %}
+            </div>
+
+            <div style="text-align: right;">
+              <div style="font-size: 0.8rem; color: var(--gray-medium);">Total Amount (COD)</div>
+              <strong style="font-size: 1.3rem; font-family: var(--font-heading); color: var(--primary);">₹{{ "%.2f"|format(order.total_amount) }}</strong>
+            </div>
+          </div>
+
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div style="background: #FFFFFF; border-radius: 16px; padding: 4rem 2rem; text-align: center; border: var(--border-light); max-width: 550px; margin: 0 auto;">
+      <div style="width: 70px; height: 70px; border-radius: 50%; background: #FAF7F2; color: var(--gray-medium); display: flex; align-items: center; justify-content: center; font-size: 2rem; margin: 0 auto 1.25rem;">
+        <i class="fa-solid fa-receipt"></i>
+      </div>
+      <h3 style="font-size: 1.4rem; margin-bottom: 0.5rem;">No Orders Yet</h3>
+      <p style="color: var(--gray-dark); margin-bottom: 1.5rem;">You haven't placed any regional orders yet. Discover delicious spices and snacks now!</p>
+      <a href="{{ url_for('product.products_list') }}" class="btn btn-primary">
+        <i class="fa-solid fa-compass"></i> Explore Regional Foods
+      </a>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

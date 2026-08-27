@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+
+{% block title %}User Profile — FlavorBridge{% endblock %}
+
+{% block content %}
+<div class="container container-narrow" style="padding: 3.5rem 1.25rem;">
+  <div class="form-card">
+    <div style="margin-bottom: 2rem;">
+      <h1 style="font-size: 2.2rem; margin-bottom: 0.35rem;"><i class="fa-solid fa-user-pen" style="color: var(--primary);"></i> Account Profile</h1>
+      <p style="color: var(--gray-dark); font-size: 0.95rem;">Update your contact information, delivery address, and security details</p>
+    </div>
+
+    <form method="POST" action="{{ url_for('auth.profile') }}">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" for="prof-name">Full Name *</label>
+          <input type="text" id="prof-name" name="name" class="form-control" value="{{ user.name }}" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="prof-email">Email Address</label>
+          <input type="email" id="prof-email" class="form-control" value="{{ user.email }}" disabled style="background: #FAF7F2;">
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" for="prof-phone">Phone Number</label>
+          <input type="tel" id="prof-phone" name="phone" class="form-control" value="{{ user.phone or '' }}">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="prof-city">City / Region</label>
+          <input type="text" id="prof-city" name="city" class="form-control" value="{{ user.city or '' }}">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="prof-address">Complete Address</label>
+        <textarea id="prof-address" name="address" class="form-control" rows="2">{{ user.address or '' }}</textarea>
+      </div>
+
+      <!-- Food Maker fields if user is a maker -->
+      {% if user.role == 'food_maker' and user.food_maker_profile %}
+        {% set maker = user.food_maker_profile %}
+        <div style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px dashed var(--gray-light);">
+          <h3 style="font-size: 1.2rem; color: var(--secondary); margin-bottom: 1rem;">
+            <i class="fa-solid fa-kitchen-set"></i> Kitchen Profile
+          </h3>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Speciality</label>
+              <input type="text" name="speciality" class="form-control" value="{{ maker.speciality or '' }}">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Years Experience</label>
+              <input type="number" name="years_experience" class="form-control" value="{{ maker.years_experience or 0 }}">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Cuisines / Traditions</label>
+            <input type="text" name="cuisines" class="form-control" value="{{ maker.cuisines or '' }}">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Kitchen Story</label>
+            <textarea name="description" class="form-control" rows="3">{{ maker.description or '' }}</textarea>
+          </div>
+        </div>
+      {% endif %}
+
+      <!-- Password Change -->
+      <div style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px dashed var(--gray-light);">
+        <h3 style="font-size: 1.15rem; color: var(--dark); margin-bottom: 0.75rem;">Change Password</h3>
+        <div class="form-group">
+          <label class="form-label" for="prof-password">New Password (Leave blank to keep current)</label>
+          <input type="password" id="prof-password" name="new_password" class="form-control" placeholder="••••••••" minlength="6">
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-lg" style="margin-top: 1.5rem;">
+        <i class="fa-solid fa-floppy-disk"></i> Save Profile Changes
+      </button>
+    </form>
+  </div>
+</div>
+{% endblock %}

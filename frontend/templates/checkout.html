@@ -1,0 +1,162 @@
+{% extends "base.html" %}
+
+{% block title %}Checkout — FlavorBridge{% endblock %}
+
+{% block content %}
+<div class="container" style="padding: 3rem 1.25rem;">
+  <div style="margin-bottom: 2rem;">
+    <div style="font-size: 0.85rem; color: var(--gray-medium); margin-bottom: 0.4rem;">
+      <a href="{{ url_for('cart.view_cart') }}">Cart</a> &gt; <span>Checkout</span>
+    </div>
+    <h1 style="font-size: 2.2rem; margin-bottom: 0.35rem;">Delivery & Order Confirmation</h1>
+    <p style="color: var(--gray-dark); font-size: 0.95rem;">Enter your delivery address and confirm your Cash on Delivery order</p>
+  </div>
+
+  {% if cart.food_maker %}
+    <div style="background: #FAF7F2; border: 1px solid #ECE7DE; border-radius: 12px; padding: 1rem 1.25rem; margin-bottom: 2rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.75rem; box-shadow: var(--shadow-sm);">
+      <div style="display: flex; align-items: center; gap: 0.85rem;">
+        <div style="width: 42px; height: 42px; border-radius: 50%; background: #E8F8F5; color: #0E6251; display: flex; align-items: center; justify-content: center; font-size: 1.15rem; border: 1px solid #A2D9CE;">
+          <i class="fa-solid fa-kitchen-set"></i>
+        </div>
+        <div>
+          <div style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--gray-medium); font-weight: 700;">
+            Ordering Exclusively From Kitchen
+          </div>
+          <strong style="font-size: 1rem; color: var(--dark);">{{ cart.food_maker.user.name }}</strong>
+          <span style="font-size: 0.82rem; color: var(--gray-dark); margin-left: 0.4rem;"><i class="fa-solid fa-location-dot"></i> {{ cart.food_maker.user.city }}</span>
+        </div>
+      </div>
+      <div>
+        <span class="badge badge-verified" style="font-size: 0.75rem; padding: 0.35rem 0.75rem;">
+          <i class="fa-solid fa-shield-halved"></i> 100% Single-Kitchen Direct Delivery
+        </span>
+      </div>
+    </div>
+  {% endif %}
+
+  <form method="POST" action="{{ url_for('order.place_order') }}">
+    <div style="display: grid; grid-template-columns: 1fr 380px; gap: 2.5rem; align-items: start;">
+      
+      <!-- Delivery Address Form -->
+      <div class="form-card">
+        <h3 style="font-size: 1.3rem; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem; color: var(--dark);">
+          <i class="fa-solid fa-location-dot" style="color: var(--primary);"></i> 1. Delivery Details
+        </h3>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="checkout-name">Recipient Name *</label>
+            <input type="text" id="checkout-name" name="name" class="form-control" value="{{ user.name }}" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="checkout-phone">Contact Phone Number *</label>
+            <input type="tel" id="checkout-phone" name="phone" class="form-control" value="{{ user.phone or '' }}" placeholder="10-digit mobile" required>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="checkout-address">Complete Street Address *</label>
+          <textarea id="checkout-address" name="address" class="form-control" rows="2" placeholder="House/Flat No., Street Name, Landmark" required>{{ user.address or '' }}</textarea>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="checkout-city">City / Town *</label>
+            <input type="text" id="checkout-city" name="city" class="form-control" value="{{ user.city or 'Chennai' }}" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="checkout-state">State *</label>
+            <input type="text" id="checkout-state" name="state" class="form-control" value="Tamil Nadu" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="checkout-pincode">Pincode *</label>
+            <input type="text" id="checkout-pincode" name="pincode" class="form-control" placeholder="600001" required>
+          </div>
+        </div>
+
+        <div style="margin-top: 2rem; padding-top: 1.5rem; border-top: 1px dashed var(--gray-light);">
+          <h3 style="font-size: 1.3rem; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; color: var(--dark);">
+            <i class="fa-solid fa-wallet" style="color: var(--secondary);"></i> 2. Payment Method
+          </h3>
+
+          <div style="background: #EAFAF1; border: 1px solid #A2D9CE; padding: 1.25rem; border-radius: 12px; display: flex; align-items: center; gap: 1rem;">
+            <input type="radio" name="payment_method" value="Cash on Delivery" checked style="width: 20px; height: 20px; accent-color: var(--secondary);">
+            <div>
+              <strong style="font-size: 1rem; color: #145A32; display: block;">Cash on Delivery (COD)</strong>
+              <p style="font-size: 0.85rem; color: #1E8449; margin: 0;">Pay with cash or UPI directly when your regional order is delivered.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Order Review Sidebar -->
+      <div class="cart-summary-card">
+        <h3 style="font-size: 1.25rem; margin-bottom: 1.25rem; padding-bottom: 0.75rem; border-bottom: 1px solid var(--gray-light);">
+          Order Summary <span id="checkout-count-val">({{ cart.total_items }} Items)</span>
+        </h3>
+
+        <div style="font-size: 0.82rem; background: #FAF7F2; border: 1px solid #ECE7DE; border-radius: 8px; padding: 0.65rem 0.85rem; margin-bottom: 1.25rem; color: var(--dark); line-height: 1.5;">
+          <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <i class="fa-solid fa-circle-plus" style="color: var(--primary);"></i>
+            <span>Click <strong>+</strong> to increase quantity.</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 0.5rem; margin-top: 0.35rem;">
+            <i class="fa-solid fa-circle-minus" style="color: var(--secondary);"></i>
+            <span>Click <strong>-</strong> to decrease / remove quantity.</span>
+          </div>
+        </div>
+
+        <div id="checkout-items-list" style="display: flex; flex-direction: column; gap: 0.85rem; margin-bottom: 1.25rem; max-height: 280px; overflow-y: auto;">
+          {% for item in cart.items %}
+            <div id="checkout-item-{{ item.id }}" style="display: flex; justify-content: space-between; align-items: center; font-size: 0.88rem; padding-bottom: 0.75rem; border-bottom: 1px dashed #ECE7DE;">
+              <div style="flex: 1; padding-right: 0.5rem;">
+                <strong style="display: block; color: var(--dark); font-size: 0.92rem;">{{ item.product.name }}</strong>
+                <div style="font-size: 0.75rem; color: var(--gray-medium);">
+                  ₹{{ "%.2f"|format(item.product.price) }}
+                  {% if item.product.net_quantity %}
+                    • <span style="background: #FAF7F2; border: 1px solid #ECE7DE; border-radius: 4px; padding: 0 4px;">{{ item.product.net_quantity }}</span>
+                  {% endif %}
+                </div>
+              </div>
+              <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <div class="quantity-stepper">
+                  <button type="button" class="quantity-btn cart-qty-btn" data-item-id="{{ item.id }}" data-action="decrease" title="Decrease or remove">-</button>
+                  <input type="number" id="cart-qty-input-{{ item.id }}" value="{{ item.quantity }}" class="quantity-input" readonly>
+                  <button type="button" class="quantity-btn cart-qty-btn" data-item-id="{{ item.id }}" data-action="increase" title="Increase">+</button>
+                </div>
+                <span id="checkout-subtotal-{{ item.id }}" style="font-weight: 700; color: var(--dark); min-width: 65px; text-align: right;">₹{{ "%.2f"|format(item.subtotal) }}</span>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+
+        <div class="summary-row">
+          <span>Items Subtotal</span>
+          <strong id="checkout-subtotal-val">₹{{ "%.2f"|format(subtotal) }}</strong>
+        </div>
+
+        <div class="summary-row">
+          <span>Delivery Fee</span>
+          <span id="checkout-delivery-val" style="color: {{ 'var(--success)' if delivery_fee == 0 else 'var(--dark)' }}; font-weight: 600;">
+            {{ 'FREE' if delivery_fee == 0 else '₹' ~ "%.2f"|format(delivery_fee) }}
+          </span>
+        </div>
+
+        <div class="summary-row total-row">
+          <span>Total Amount</span>
+          <span style="color: var(--primary);" id="checkout-total-val">₹{{ "%.2f"|format(total) }}</span>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-block btn-lg" id="btn-confirm-order" style="margin-top: 1.5rem;">
+          <i class="fa-solid fa-circle-check"></i> Confirm & Place Order
+        </button>
+
+        <div style="font-size: 0.75rem; color: var(--gray-medium); text-align: center; margin-top: 1rem;">
+          <i class="fa-solid fa-shield-halved"></i> 100% Secure Checkout • Safe Local Delivery
+        </div>
+      </div>
+
+    </div>
+  </form>
+</div>
+{% endblock %}

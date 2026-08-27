@@ -1,0 +1,215 @@
+{% extends "base.html" %}
+
+{% block title %}Food Maker Dashboard — FlavorBridge{% endblock %}
+
+{% block content %}
+<div class="container" style="padding: 3rem 1.25rem;">
+  
+  <!-- Dashboard Header -->
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2.5rem; flex-wrap: wrap; gap: 1.5rem;">
+    <div>
+      <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.4rem;">
+        <h1 style="font-size: 2.2rem; margin: 0;">{{ maker.user.name }}</h1>
+        {% if maker.is_verified %}
+          <span class="badge badge-verified" style="font-size: 0.9rem; padding: 0.35rem 0.85rem;"><i class="fa-solid fa-circle-check"></i> Verified Maker</span>
+        {% else %}
+          <span class="badge badge-pending" style="font-size: 0.9rem; padding: 0.35rem 0.85rem;"><i class="fa-solid fa-clock"></i> Verification Pending</span>
+        {% endif %}
+      </div>
+      <p style="color: var(--gray-dark); font-size: 0.95rem;">
+        <i class="fa-solid fa-location-dot"></i> {{ maker.user.city }} • Speciality: <strong>{{ maker.speciality }}</strong>
+      </p>
+    </div>
+
+    <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+      <a href="{{ url_for('product.add_product') }}" class="btn btn-primary" id="maker-btn-add-product">
+        <i class="fa-solid fa-plus"></i> Add New Product
+      </a>
+      <a href="{{ url_for('food_maker.food_maker_profile', maker_id=maker.id) }}" class="btn btn-outline">
+        <i class="fa-solid fa-eye"></i> View Public Kitchen
+      </a>
+    </div>
+  </div>
+
+  <!-- Verification Status Banner -->
+  <!-- Daily Verification & Overall Score Banners -->
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2.5rem;">
+    <!-- 1. Daily Verification Status (Refreshes Daily) -->
+    <div style="background: #FFFFFF; border-radius: 16px; border: 2px solid {{ '#27AE60' if maker.today_verification else '#E67E22' }}; padding: 1.5rem; box-shadow: var(--shadow-sm); display: flex; flex-direction: column; justify-content: space-between;">
+      <div>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+          <strong style="font-size: 1.05rem; color: var(--dark);">
+            <i class="fa-solid fa-calendar-check" style="color: {{ '#27AE60' if maker.today_verification else '#E67E22' }};"></i> Daily Ingredients & Dish Log
+          </strong>
+          {% if maker.today_verification %}
+            <span class="badge badge-verified"><i class="fa-solid fa-check"></i> Verified Today</span>
+          {% else %}
+            <span class="badge badge-pending" style="background: #FEF9E7; color: #B7950B;"><i class="fa-solid fa-clock"></i> Action Required Today</span>
+          {% endif %}
+        </div>
+        <p style="font-size: 0.85rem; color: var(--gray-dark); margin: 0;">
+          {% if maker.today_verification %}
+            ✨ Today's ingredients & final dish photo are active. Customers can view your fresh batch proof!
+          {% else %}
+            Upload today's fresh ingredients and a photo of your freshly prepared dish to earn the Fresh Batch badge!
+          {% endif %}
+        </p>
+      </div>
+
+      <div style="margin-top: 1rem;">
+        <a href="{{ url_for('food_maker.verification') }}" class="btn {{ 'btn-outline-secondary' if maker.today_verification else 'btn-primary' }} btn-sm">
+          <i class="fa-solid fa-camera"></i> {{ 'View / Edit Today\'s Log' if maker.today_verification else 'Upload Today\'s Ingredients & Dish Photo' }}
+        </a>
+      </div>
+    </div>
+
+    <!-- 2. Overall Platform Verification Score -->
+    <div style="background: #FFFFFF; border-radius: 16px; border: var(--border-light); padding: 1.5rem; box-shadow: var(--shadow-sm); display: flex; flex-direction: column; justify-content: space-between;">
+      <div>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+          <strong style="font-size: 1.05rem; color: var(--dark);">
+            <i class="fa-solid fa-certificate" style="color: var(--primary);"></i> Authenticity Score: {{ maker.verification_score }}/100
+          </strong>
+          <span style="font-size: 0.82rem; font-weight: 700; color: {{ 'var(--success)' if maker.is_verified else 'var(--warning)' }};">
+            {{ '✓ Verified Maker' if maker.is_verified else 'Need 80+ for Badge' }}
+          </span>
+        </div>
+        <div class="meter-bar-track" style="margin: 6px 0; height: 10px;">
+          <div class="meter-bar-fill" style="width: {{ maker.verification_score }}%;"></div>
+        </div>
+        <p style="font-size: 0.82rem; color: var(--gray-medium); margin: 0;">Based on profile, experience, and recipe authenticity.</p>
+      </div>
+
+      <div style="margin-top: 1rem;">
+        <a href="{{ url_for('food_maker.verification') }}" class="btn btn-outline btn-sm">
+          <i class="fa-solid fa-list-check"></i> Manage Verification
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Metric Statistics Cards -->
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.5rem; margin-bottom: 3rem;">
+    <div style="background: #FFFFFF; border-radius: 14px; border: var(--border-light); padding: 1.5rem; box-shadow: var(--shadow-sm);">
+      <div style="font-size: 0.82rem; color: var(--gray-medium); text-transform: uppercase; font-weight: 700;">Active Delicacies</div>
+      <div style="font-size: 2.2rem; font-weight: 800; color: var(--dark); font-family: var(--font-heading); margin-top: 0.3rem;">
+        {{ products|length }}
+      </div>
+      <a href="{{ url_for('product.my_products') }}" style="font-size: 0.82rem; color: var(--primary); font-weight: 600; margin-top: 0.4rem; display: inline-block;">
+        Manage Products &rarr;
+      </a>
+    </div>
+
+    <div style="background: #FFFFFF; border-radius: 14px; border: var(--border-light); padding: 1.5rem; box-shadow: var(--shadow-sm);">
+      <div style="font-size: 0.82rem; color: var(--gray-medium); text-transform: uppercase; font-weight: 700;">Incoming / Active Orders</div>
+      <div style="font-size: 2.2rem; font-weight: 800; color: #E65100; font-family: var(--font-heading); margin-top: 0.3rem;">
+        {{ pending_orders|length }}
+      </div>
+      <span style="font-size: 0.82rem; color: var(--gray-dark); margin-top: 0.4rem; display: inline-block;">Requires preparation</span>
+    </div>
+
+    <div style="background: #FFFFFF; border-radius: 14px; border: var(--border-light); padding: 1.5rem; box-shadow: var(--shadow-sm);">
+      <div style="font-size: 0.82rem; color: var(--gray-medium); text-transform: uppercase; font-weight: 700;">Delivered Orders</div>
+      <div style="font-size: 2.2rem; font-weight: 800; color: #27AE60; font-family: var(--font-heading); margin-top: 0.3rem;">
+        {{ completed_orders|length }}
+      </div>
+      <span style="font-size: 0.82rem; color: var(--gray-dark); margin-top: 0.4rem; display: inline-block;">Delivered to customers</span>
+    </div>
+
+    <div style="background: #FFFFFF; border-radius: 14px; border: var(--border-light); padding: 1.5rem; box-shadow: var(--shadow-sm);">
+      <div style="font-size: 0.82rem; color: var(--gray-medium); text-transform: uppercase; font-weight: 700;">Total Orders Revenue (COD)</div>
+      <div style="font-size: 2.2rem; font-weight: 800; color: var(--primary); font-family: var(--font-heading); margin-top: 0.3rem;">
+        ₹{{ "%.2f"|format(total_revenue) }}
+      </div>
+      <span style="font-size: 0.82rem; color: var(--gray-dark); margin-top: 0.4rem; display: inline-block;">Lifetime sales</span>
+    </div>
+  </div>
+
+  <!-- Incoming Orders Management Section -->
+  <div style="margin-bottom: 3.5rem;">
+    <div class="section-header">
+      <div>
+        <h2 class="section-title">Incoming & Active Orders</h2>
+        <p class="section-subtitle">Manage kitchen preparation and update shipping status for your customers</p>
+      </div>
+    </div>
+
+    {% if orders %}
+      <div class="cart-table-wrapper">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Order ID</th>
+              <th>Customer & City</th>
+              <th>Items Ordered</th>
+              <th>Current Status</th>
+              <th>Update Status</th>
+              <th>View</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for order in orders %}
+              <tr>
+                <td>
+                  <strong>#ORD-{{ "%05d"|format(order.id) }}</strong>
+                  <div style="font-size: 0.75rem; color: var(--gray-medium);">{{ order.created_at.strftime('%b %d, %I:%M %p') }}</div>
+                </td>
+
+                <td>
+                  <strong>{{ order.customer.name if order.customer else 'Customer' }}</strong>
+                  <div style="font-size: 0.78rem; color: var(--gray-medium);"><i class="fa-solid fa-location-dot"></i> {{ order.city }}</div>
+                </td>
+
+                <td>
+                  <div style="font-size: 0.85rem;">
+                    {% for item in order.items if item.food_maker_id == maker.id %}
+                      <div><strong>{{ item.quantity }}x</strong> {{ item.product.name if item.product else 'Delicacy' }}</div>
+                    {% endfor %}
+                  </div>
+                </td>
+
+                <td>
+                  <span class="badge {% if order.status == 'Delivered' %}badge-verified{% elif order.status in ['Preparing', 'Shipped', 'Out for Delivery'] %}badge-fresh{% else %}badge-pending{% endif %}">
+                    {{ order.status }}
+                  </span>
+                </td>
+
+                <td>
+                  <form method="POST" action="{{ url_for('order.update_order_status') }}" style="display: flex; gap: 0.5rem; align-items: center;">
+                    <input type="hidden" name="order_id" value="{{ order.id }}">
+                    <select name="status" class="form-control" style="font-size: 0.82rem; padding: 0.35rem 0.65rem; width: auto;">
+                      <option value="Pending" {{ 'selected' if order.status == 'Pending' else '' }}>Pending</option>
+                      <option value="Accepted" {{ 'selected' if order.status == 'Accepted' else '' }}>Accepted</option>
+                      <option value="Preparing" {{ 'selected' if order.status == 'Preparing' else '' }}>Preparing</option>
+                      {% if order.has_fresh_food %}
+                        <option value="Out for Delivery" {{ 'selected' if order.status == 'Out for Delivery' else '' }}>Out for Delivery</option>
+                      {% else %}
+                        <option value="Shipped" {{ 'selected' if order.status == 'Shipped' else '' }}>Shipped</option>
+                      {% endif %}
+                      <option value="Delivered" {{ 'selected' if order.status == 'Delivered' else '' }}>Delivered</option>
+                    </select>
+                    <button type="submit" class="btn btn-secondary btn-sm" style="padding: 0.35rem 0.65rem; font-size: 0.78rem;">
+                      Save
+                    </button>
+                  </form>
+                </td>
+
+                <td>
+                  <a href="{{ url_for('order.order_detail', order_id=order.id) }}" class="btn btn-outline btn-sm">
+                    <i class="fa-solid fa-eye"></i>
+                  </a>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div style="background: #FFFFFF; border-radius: 14px; padding: 2.5rem; text-align: center; border: var(--border-light);">
+        <p style="color: var(--gray-medium); margin: 0;">No incoming orders yet. As customers discover your products, they will appear here in real-time!</p>
+      </div>
+    {% endif %}
+  </div>
+
+</div>
+{% endblock %}

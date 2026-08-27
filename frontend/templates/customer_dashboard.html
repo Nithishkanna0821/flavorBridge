@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+
+{% block title %}Customer Dashboard — FlavorBridge{% endblock %}
+
+{% block content %}
+<div class="container" style="padding: 3rem 1.25rem;">
+  
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2.5rem; flex-wrap: wrap; gap: 1rem;">
+    <div>
+      <h1 style="font-size: 2.2rem; margin-bottom: 0.2rem;">Hello, {{ user.name }}!</h1>
+      <p style="color: var(--gray-dark); font-size: 0.95rem;">
+        <i class="fa-solid fa-location-dot"></i> {{ user.city or 'India' }} • Welcome to your regional food hub
+      </p>
+    </div>
+
+    <div style="display: flex; gap: 0.75rem;">
+      <a href="{{ url_for('ai.recommendations') }}" class="btn btn-primary btn-sm">
+        <i class="fa-solid fa-wand-magic-sparkles"></i> AI Picks For You
+      </a>
+      <a href="{{ url_for('ai.food_assistant') }}" class="btn btn-outline btn-sm">
+        <i class="fa-solid fa-robot"></i> Ask Food Assistant
+      </a>
+    </div>
+  </div>
+
+  <!-- Quick Stats -->
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.5rem; margin-bottom: 3rem;">
+    <div style="background: #FFFFFF; border-radius: 14px; border: var(--border-light); padding: 1.5rem; box-shadow: var(--shadow-sm);">
+      <div style="font-size: 0.82rem; color: var(--gray-medium); text-transform: uppercase; font-weight: 700;">Total Orders Placed</div>
+      <div style="font-size: 2rem; font-weight: 800; color: var(--primary); font-family: var(--font-heading); margin-top: 0.25rem;">
+        {{ total_orders_count }}
+      </div>
+      <a href="{{ url_for('order.customer_orders') }}" style="font-size: 0.82rem; color: var(--primary); font-weight: 600; margin-top: 0.4rem; display: inline-block;">
+        View All Orders &rarr;
+      </a>
+    </div>
+
+    <div style="background: #FFFFFF; border-radius: 14px; border: var(--border-light); padding: 1.5rem; box-shadow: var(--shadow-sm);">
+      <div style="font-size: 0.82rem; color: var(--gray-medium); text-transform: uppercase; font-weight: 700;">Active Cart Items</div>
+      <div style="font-size: 2rem; font-weight: 800; color: var(--secondary); font-family: var(--font-heading); margin-top: 0.25rem;">
+        {{ user.cart.total_items if user.cart else 0 }}
+      </div>
+      <a href="{{ url_for('cart.view_cart') }}" style="font-size: 0.82rem; color: var(--secondary); font-weight: 600; margin-top: 0.4rem; display: inline-block;">
+        View Cart &rarr;
+      </a>
+    </div>
+
+    <div style="background: #FFFFFF; border-radius: 14px; border: var(--border-light); padding: 1.5rem; box-shadow: var(--shadow-sm);">
+      <div style="font-size: 0.82rem; color: var(--gray-medium); text-transform: uppercase; font-weight: 700;">Preferred Region</div>
+      <div style="font-size: 1.4rem; font-weight: 800; color: var(--dark); font-family: var(--font-heading); margin-top: 0.5rem;">
+        {{ user.city or 'South India' }}
+      </div>
+      <span style="font-size: 0.82rem; color: var(--gray-dark); margin-top: 0.4rem; display: inline-block;">City Delivery Active</span>
+    </div>
+  </div>
+
+  <!-- Recent Orders Table -->
+  <div style="margin-bottom: 3.5rem;">
+    <div class="section-header">
+      <div>
+        <h2 class="section-title">Recent Orders</h2>
+        <p class="section-subtitle">Keep track of your current and recently delivered regional foods</p>
+      </div>
+      <a href="{{ url_for('order.customer_orders') }}" class="btn btn-outline btn-sm">View All Orders</a>
+    </div>
+
+    {% if recent_orders %}
+      <div class="cart-table-wrapper">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Order ID</th>
+              <th>Date</th>
+              <th>Total (COD)</th>
+              <th>Status</th>
+              <th>Details</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for order in recent_orders %}
+              <tr>
+                <td><strong>#ORD-{{ "%05d"|format(order.id) }}</strong></td>
+                <td>{{ order.created_at.strftime('%b %d, %Y') }}</td>
+                <td style="font-weight: 700; color: var(--primary);">₹{{ "%.2f"|format(order.total_amount) }}</td>
+                <td>
+                  <span class="badge {% if order.status == 'Delivered' %}badge-verified{% elif order.status in ['Preparing', 'Shipped', 'Out for Delivery'] %}badge-fresh{% else %}badge-pending{% endif %}">
+                    {{ order.status }}
+                  </span>
+                </td>
+                <td>
+                  <a href="{{ url_for('order.order_detail', order_id=order.id) }}" class="btn btn-outline btn-sm">Track</a>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div style="background: #FFFFFF; border-radius: 14px; padding: 2.5rem; text-align: center; border: var(--border-light);">
+        <p style="color: var(--gray-medium); margin-bottom: 1rem;">No orders placed yet.</p>
+        <a href="{{ url_for('product.products_list') }}" class="btn btn-primary btn-sm">Browse Regional Delicacies</a>
+      </div>
+    {% endif %}
+  </div>
+
+</div>
+{% endblock %}

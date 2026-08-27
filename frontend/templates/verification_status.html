@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block title %}Verification Status — FlavorBridge{% endblock %}
+
+{% block content %}
+<div class="container container-narrow" style="padding: 3.5rem 1.25rem;">
+  <div style="background: #FFFFFF; border-radius: 20px; border: var(--border-light); padding: 3rem 2rem; text-align: center; box-shadow: var(--shadow-md);">
+    
+    <div style="width: 80px; height: 80px; border-radius: 50%; background: {{ '#EAFAF1' if maker.is_verified else '#FEF9E7' }}; color: {{ 'var(--success)' if maker.is_verified else 'var(--warning)' }}; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; margin: 0 auto 1.5rem;">
+      <i class="fa-solid {{ 'fa-circle-check' if maker.is_verified else 'fa-clock' }}"></i>
+    </div>
+
+    <h1 style="font-size: 2.2rem; margin-bottom: 0.5rem;">
+      {{ '✓ You are a Verified Food Maker!' if maker.is_verified else 'Verification In Progress' }}
+    </h1>
+
+    <p style="color: var(--gray-dark); font-size: 1.05rem; max-width: 500px; margin: 0 auto 2rem;">
+      {{ 'Your authenticity score is above 80%. The Verified badge is now proudly displayed on all your regional delicacies and public kitchen profile.' if maker.is_verified else 'Your authenticity score is currently below 80%. Complete remaining profile items or add images to earn your verified badge.' }}
+    </p>
+
+    <!-- Score Card -->
+    <div style="background: #FAF7F2; border-radius: 14px; border: 1px solid #ECE7DE; padding: 1.5rem; max-width: 450px; margin: 0 auto 2rem;">
+      <div style="font-size: 0.85rem; color: var(--gray-medium); text-transform: uppercase; font-weight: 700;">Authenticity Rating</div>
+      <div style="font-size: 2.8rem; font-weight: 800; color: var(--primary); font-family: var(--font-heading); margin: 0.25rem 0;">
+        {{ maker.verification_score }} <span style="font-size: 1.5rem; color: var(--gray-medium);">/ 100</span>
+      </div>
+      <div class="meter-bar-track" style="margin: 0.5rem 0 0.75rem;">
+        <div class="meter-bar-fill" style="width: {{ maker.verification_score }}%;"></div>
+      </div>
+      <span style="font-size: 0.85rem; font-weight: 600; color: {{ 'var(--success)' if maker.is_verified else 'var(--warning)' }};">
+        {{ 'Verified Status Active' if maker.is_verified else 'Score 80+ required for verification badge' }}
+      </span>
+    </div>
+
+    <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+      <a href="{{ url_for('food_maker.verification') }}" class="btn btn-outline">
+        <i class="fa-solid fa-pen-to-square"></i> Edit Verification Details
+      </a>
+      <a href="{{ url_for('food_maker.dashboard') }}" class="btn btn-primary">
+        <i class="fa-solid fa-gauge"></i> Return to Dashboard
+      </a>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

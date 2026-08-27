@@ -1,0 +1,177 @@
+{% extends "base.html" %}
+
+{% block title %}Your Shopping Cart — FlavorBridge{% endblock %}
+
+{% block content %}
+<div class="container" style="padding: 3rem 1.25rem;">
+  <div style="margin-bottom: 2rem;">
+    <h1 style="font-size: 2.2rem; margin-bottom: 0.35rem;"><i class="fa-solid fa-basket-shopping" style="color: var(--primary);"></i> Your Shopping Cart</h1>
+    <p style="color: var(--gray-dark); font-size: 0.95rem;">Review your selected authentic regional delicacies before checkout</p>
+  </div>
+
+  {% if cart and cart.items %}
+    <!-- Single Kitchen Notice Banner -->
+    {% if cart.food_maker %}
+      <div style="background: #FAF7F2; border: 1px solid #ECE7DE; border-radius: 12px; padding: 1rem 1.25rem; margin-bottom: 1.75rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; box-shadow: var(--shadow-sm);">
+        <div style="display: flex; align-items: center; gap: 1rem;">
+          <div style="width: 44px; height: 44px; border-radius: 50%; background: #E8F8F5; color: #0E6251; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; border: 1px solid #A2D9CE;">
+            <i class="fa-solid fa-kitchen-set"></i>
+          </div>
+          <div>
+            <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--gray-medium); font-weight: 700;">
+              Active Artisan Kitchen • Single-Kitchen Order
+            </div>
+            <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+              <strong style="font-size: 1.05rem; color: var(--dark);">{{ cart.food_maker.user.name }}</strong>
+              <span style="font-size: 0.85rem; color: var(--gray-dark);"><i class="fa-solid fa-location-dot"></i> {{ cart.food_maker.user.city }}</span>
+              <span class="badge badge-verified" style="font-size: 0.72rem;"><i class="fa-solid fa-check-double"></i> 100% Direct Kitchen Dispatch</span>
+            </div>
+          </div>
+        </div>
+        <div>
+          <form method="POST" action="{{ url_for('cart.clear_cart') }}" onsubmit="return confirm('Clear your entire cart to order from another kitchen?');">
+            <button type="submit" class="btn btn-outline btn-sm" style="color: var(--danger); border-color: #FADBD8; background: #FDEDEC;">
+              <i class="fa-solid fa-trash-can"></i> Clear Kitchen Cart
+            </button>
+          </form>
+        </div>
+      </div>
+    {% endif %}
+
+    <div style="display: grid; grid-template-columns: 1fr 340px; gap: 2rem; align-items: start;">
+      
+      <!-- Cart Items Table -->
+      <div class="cart-table-wrapper">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Delicacy</th>
+              <th>Unit Price</th>
+              <th>Quantity</th>
+              <th>Subtotal</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in cart.items %}
+              <tr id="cart-row-{{ item.id }}">
+                <td>
+                  <div style="display: flex; align-items: center; gap: 1rem;">
+                    {% if item.product.image %}
+                      <img src="{{ url_for('uploaded_file', filename=item.product.image) }}" alt="{{ item.product.name }}" style="width: 48px; height: 48px; border-radius: 8px; object-fit: cover; border: 1px solid #ECE7DE;">
+                    {% else %}
+                      <div style="width: 48px; height: 48px; border-radius: 8px; background: #FAF7F2; color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 1.2rem; border: 1px solid #ECE7DE;">
+                        <i class="fa-solid fa-utensils"></i>
+                      </div>
+                    {% endif %}
+                    <div>
+                      <strong style="font-size: 1rem; color: var(--dark); display: block;">
+                        <a href="{{ url_for('product.product_detail', product_id=item.product.id) }}">{{ item.product.name }}</a>
+                        {% if item.product.net_quantity %}
+                          <span class="badge" style="font-size: 0.72rem; background: #FAF7F2; color: #1C2321; border: 1px solid #ECE7DE; font-weight: 700; margin-left: 4px;">
+                            {{ item.product.net_quantity }}
+                          </span>
+                        {% endif %}
+                      </strong>
+                      <span style="font-size: 0.78rem; color: var(--gray-medium);">
+                        <i class="fa-solid fa-location-dot"></i> {{ item.product.city }} • {{ item.product.food_maker.user.name }}
+                      </span>
+                    </div>
+                  </div>
+                </td>
+
+                <td style="font-weight: 700; color: var(--dark);">
+                  ₹{{ "%.2f"|format(item.product.price) }}
+                </td>
+
+                <td>
+                  <div class="quantity-stepper">
+                    <button type="button" class="quantity-btn cart-qty-btn" data-item-id="{{ item.id }}" data-action="decrease">-</button>
+                    <input type="number" id="cart-qty-input-{{ item.id }}" value="{{ item.quantity }}" class="quantity-input" readonly>
+                    <button type="button" class="quantity-btn cart-qty-btn" data-item-id="{{ item.id }}" data-action="increase">+</button>
+                  </div>
+                </td>
+
+                <td style="font-weight: 800; font-family: var(--font-heading); font-size: 1.1rem; color: var(--primary);" id="item-subtotal-{{ item.id }}">
+                  ₹{{ "%.2f"|format(item.subtotal) }}
+                </td>
+
+                <td>
+                  <form method="POST" action="{{ url_for('cart.remove_from_cart', item_id=item.id) }}">
+                    <button type="submit" class="btn btn-outline btn-sm" style="color: var(--danger); border-color: #FDEDEC; background: #FDEDEC;" title="Remove Item">
+                      <i class="fa-solid fa-trash-can"></i>
+                    </button>
+                  </form>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Order Summary Card -->
+      <div class="cart-summary-card">
+        <h3 style="font-size: 1.25rem; margin-bottom: 1.25rem; padding-bottom: 0.75rem; border-bottom: 1px solid var(--gray-light);">
+          Order Summary
+        </h3>
+
+        <div style="font-size: 0.82rem; background: #FAF7F2; border: 1px solid #ECE7DE; border-radius: 8px; padding: 0.65rem 0.85rem; margin-bottom: 1.25rem; color: var(--dark); line-height: 1.5;">
+          <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <i class="fa-solid fa-circle-plus" style="color: var(--primary);"></i>
+            <span>Click <strong>+</strong> to increase quantity.</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 0.5rem; margin-top: 0.35rem;">
+            <i class="fa-solid fa-circle-minus" style="color: var(--secondary);"></i>
+            <span>Click <strong>-</strong> to decrease quantity.</span>
+          </div>
+        </div>
+
+        <div class="summary-row">
+          <span>Items Subtotal</span>
+          <strong id="cart-subtotal-val">₹{{ "%.2f"|format(subtotal) }}</strong>
+        </div>
+
+        <div class="summary-row">
+          <span>Regional Delivery Fee</span>
+          <span id="cart-delivery-val" style="color: {{ 'var(--success)' if delivery_fee == 0 else 'var(--dark)' }}; font-weight: 600;">
+            {{ 'FREE' if delivery_fee == 0 else '₹' ~ "%.2f"|format(delivery_fee) }}
+          </span>
+        </div>
+
+        <div style="font-size: 0.78rem; color: var(--gray-medium); margin-bottom: 1rem;">
+          <i class="fa-solid fa-circle-info"></i> Free delivery on all orders over ₹499
+        </div>
+
+        <div class="summary-row total-row">
+          <span>Total Payable</span>
+          <span style="color: var(--primary);" id="cart-total-val">₹{{ "%.2f"|format(total) }}</span>
+        </div>
+
+        <div style="margin: 1.25rem 0; background: #FAF7F2; padding: 0.75rem; border-radius: 8px; border: 1px solid #ECE7DE; font-size: 0.85rem; display: flex; align-items: center; gap: 0.5rem;">
+          <i class="fa-solid fa-truck-ramp-box" style="color: var(--secondary);"></i>
+          <span>Payment: <strong>Cash on Delivery (COD)</strong></span>
+        </div>
+
+        <a href="{{ url_for('order.checkout') }}" class="btn btn-primary btn-block btn-lg" id="btn-proceed-checkout">
+          Proceed to Checkout <i class="fa-solid fa-arrow-right"></i>
+        </a>
+
+        <a href="{{ url_for('product.products_list') }}" class="btn btn-outline btn-block btn-sm" style="margin-top: 0.75rem;">
+          <i class="fa-solid fa-plus"></i> Add More Delicacies
+        </a>
+      </div>
+    </div>
+  {% else %}
+    <div style="background: #FFFFFF; border-radius: 16px; padding: 4.5rem 2rem; text-align: center; border: var(--border-light); max-width: 600px; margin: 0 auto; box-shadow: var(--shadow-sm);">
+      <div style="width: 80px; height: 80px; border-radius: 50%; background: #FAF7F2; color: var(--gray-medium); display: flex; align-items: center; justify-content: center; font-size: 2.5rem; margin: 0 auto 1.5rem;">
+        <i class="fa-solid fa-basket-shopping"></i>
+      </div>
+      <h2 style="font-size: 1.6rem; margin-bottom: 0.5rem;">Your Cart is Empty</h2>
+      <p style="color: var(--gray-dark); margin-bottom: 2rem;">Explore traditional foods, spices, sweets, and fresh regional meals made with love by our food makers.</p>
+      <a href="{{ url_for('product.products_list') }}" class="btn btn-primary btn-lg">
+        <i class="fa-solid fa-utensils"></i> Start Exploring Foods
+      </a>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

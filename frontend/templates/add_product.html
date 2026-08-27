@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+
+{% block title %}Add New Regional Product — FlavorBridge{% endblock %}
+
+{% block content %}
+<div class="container container-narrow" style="padding: 3.5rem 1.25rem;">
+  <div class="form-card">
+    <div style="margin-bottom: 2rem;">
+      <div style="font-size: 0.85rem; color: var(--gray-medium); margin-bottom: 0.4rem;">
+        <a href="{{ url_for('food_maker.dashboard') }}">Dashboard</a> &gt; <span>Add Product</span>
+      </div>
+      <h1 style="font-size: 2rem; margin-bottom: 0.35rem;">Add New Regional Delicacy</h1>
+      <p style="color: var(--gray-dark); font-size: 0.95rem;">List your authentic homemade food product or freshly cooked meal</p>
+    </div>
+
+    <form method="POST" action="{{ url_for('product.add_product') }}" enctype="multipart/form-data">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" for="prod-name">Product Name *</label>
+          <input type="text" id="prod-name" name="name" class="form-control" placeholder="e.g. Traditional Chicken Masala Powder" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="prod-category">Food Category *</label>
+          <select id="prod-category" name="category" class="form-control" required>
+            <option value="">-- Select Category --</option>
+            {% for cat in categories %}
+              <option value="{{ cat }}">{{ cat }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" for="prod-price">Price (₹) *</label>
+          <input type="number" id="prod-price" name="price" class="form-control" placeholder="150.00" step="0.5" min="1" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="prod-stock">Available Stock Units *</label>
+          <input type="number" id="prod-stock" name="stock" class="form-control" value="25" min="0" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="prod-type">Product Type *</label>
+          <select id="prod-type" name="product_type" class="form-control" required>
+            <option value="Packaged Food">Packaged Food (Shelf-stable)</option>
+            <option value="Fresh Food">Fresh Food (Cooked on-demand)</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="prod-net-qty">Package Weight / Net Quantity *</label>
+          <input type="text" id="prod-net-qty" name="net_quantity" class="form-control" placeholder="e.g. 500 grams, 150 grams, 250g, 1 kg" value="250 grams" required>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" for="prod-prep-time">Preparation / Dispatch Time</label>
+          <input type="text" id="prod-prep-time" name="preparation_time" class="form-control" placeholder="e.g. 30 mins / 1 day" value="1 day">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="prod-city">City Origin *</label>
+          <input type="text" id="prod-city" name="city" class="form-control" value="{{ maker.user.city or 'Chennai' }}" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="prod-region">Regional Culinary Tradition</label>
+          <input type="text" id="prod-region" name="region" class="form-control" placeholder="e.g. Madurai Region, Chettinad" value="{{ maker.cuisines }}">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="prod-ingredients">Authentic Ingredients *</label>
+        <textarea id="prod-ingredients" name="ingredients" class="form-control" rows="2" placeholder="List all natural spices, flours, oils used (e.g. Coriander, Cumin, Malabar Pepper, Cold-pressed Sesame Oil)" required></textarea>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="prod-description">Product Description & Heritage Story *</label>
+        <textarea id="prod-description" name="description" class="form-control" rows="3" placeholder="Explain the heritage recipe, traditional technique, texture, and aroma..." required></textarea>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="prod-image">Product Image (Optional)</label>
+        <input type="file" id="prod-image" name="image" class="form-control" accept=".jpg,.jpeg,.png,.webp">
+        <div style="font-size: 0.78rem; color: var(--gray-medium); margin-top: 4px;">
+          Accepted formats: .jpg, .png, .webp (Max 5MB). Providing high-quality images improves your verification score!
+        </div>
+      </div>
+
+      <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+        <button type="submit" class="btn btn-primary btn-lg" id="btn-save-product">
+          <i class="fa-solid fa-cloud-arrow-up"></i> Publish Product
+        </button>
+        <a href="{{ url_for('product.my_products') }}" class="btn btn-outline btn-lg">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

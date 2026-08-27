@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}FlavorBridge — Regional Food Marketplace across India{% endblock %}</title>
+  <meta name="description" content="Discover authentic regional foods, homemade traditional spices, sweets, and snacks made by verified food makers across India.">
+  
+  <!-- FontAwesome 6 CDN -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  
+  <!-- Main Stylesheet -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+  <!-- Site Header & Navigation -->
+  <header class="site-header">
+    <div class="container">
+      <nav class="navbar">
+        <!-- Brand Logo -->
+        <a href="{{ url_for('index') }}" class="brand-logo" id="brand-logo-link">
+          <i class="fa-solid fa-mortar-pestle"></i>
+          <span>Flavor<span class="bridge">Bridge</span></span>
+        </a>
+
+        <!-- Navigation Links (Role-Scoped) -->
+        <ul class="nav-links" id="main-nav-links">
+          {% if current_user and current_user.role == 'food_maker' %}
+            <!-- Food Maker Partner Navigation -->
+            <li><a href="{{ url_for('food_maker.dashboard') }}" class="nav-link" id="nav-maker-dash"><i class="fa-solid fa-gauge"></i> Kitchen Dashboard</a></li>
+            <li><a href="{{ url_for('food_maker.verification') }}" class="nav-link" id="nav-maker-verify"><i class="fa-solid fa-sparkles" style="color: #27AE60;"></i> Daily Verification</a></li>
+            <li><a href="{{ url_for('product.my_products') }}" class="nav-link" id="nav-maker-dishes"><i class="fa-solid fa-boxes-stacked"></i> My Dishes & Catalog</a></li>
+            <li><a href="{{ url_for('product.add_product') }}" class="nav-link" id="nav-maker-add"><i class="fa-solid fa-circle-plus"></i> + Add Dish</a></li>
+            <li><a href="{{ url_for('food_maker.food_maker_orders') }}" class="nav-link" id="nav-maker-orders"><i class="fa-solid fa-receipt"></i> Kitchen Orders</a></li>
+          {% else %}
+            <!-- Customer & Guest Navigation -->
+            <li><a href="{{ url_for('product.products_list') }}" class="nav-link" id="nav-explore-foods"><i class="fa-solid fa-utensils"></i> Explore Foods</a></li>
+            <li><a href="{{ url_for('food_maker.food_makers_list') }}" class="nav-link" id="nav-food-makers"><i class="fa-solid fa-store"></i> Food Makers</a></li>
+            <li><a href="{{ url_for('ai.food_assistant') }}" class="nav-link" id="nav-ai-assistant"><i class="fa-solid fa-robot"></i> Food Assistant <span class="ai-badge">AI</span></a></li>
+            <li><a href="{{ url_for('ai.recipe_partners') }}" class="nav-link" id="nav-recipe-partners"><i class="fa-solid fa-user-group"></i> Recipe Partners</a></li>
+            <li><a href="{{ url_for('ai.recommendations') }}" class="nav-link" id="nav-recommendations"><i class="fa-solid fa-wand-magic-sparkles"></i> For You</a></li>
+          {% endif %}
+        </ul>
+
+        <!-- Right Side Actions & Auth -->
+        <div class="nav-actions">
+          <!-- Cart Icon (Customers & Guests Only) -->
+          {% if not current_user or current_user.role == 'customer' %}
+          <div class="cart-btn-wrapper">
+            <a href="{{ url_for('cart.view_cart') }}" class="cart-icon-btn" id="cart-nav-btn" aria-label="Shopping Cart">
+              <i class="fa-solid fa-basket-shopping"></i>
+              <span class="cart-badge" style="display: {{ 'flex' if cart_count > 0 else 'none' }};">{{ cart_count }}</span>
+            </a>
+          </div>
+          {% endif %}
+
+          {% if current_user %}
+            <!-- Authenticated User Menu -->
+            <div class="user-menu" id="user-menu-dropdown">
+              <button class="user-btn" id="user-menu-trigger">
+                <div class="user-avatar-initial" style="{{ 'background: var(--secondary);' if current_user.role == 'food_maker' else '' }}">
+                  {{ current_user.name[:1] | upper }}
+                </div>
+                <span>{{ current_user.name.split()[0] }}</span>
+                <i class="fa-solid fa-chevron-down" style="font-size: 0.75rem;"></i>
+              </button>
+              <div class="dropdown-menu">
+                <div class="dropdown-header">
+                  <strong>{{ current_user.name }}</strong>
+                  <div style="font-size: 0.75rem; color: var(--gray-medium);">{{ current_user.email }}</div>
+                  <span class="badge {{ 'badge-verified' if current_user.role == 'food_maker' else 'badge-category' }}" style="margin-top: 4px;">
+                    <i class="fa-solid {{ 'fa-kitchen-set' if current_user.role == 'food_maker' else 'fa-user' }}"></i>
+                    {{ 'Food Maker Partner' if current_user.role == 'food_maker' else 'Customer' }}
+                  </span>
+                </div>
+
+                {% if current_user.role == 'food_maker' %}
+                  <a href="{{ url_for('food_maker.dashboard') }}" class="dropdown-item" id="nav-maker-dashboard"><i class="fa-solid fa-gauge"></i> Kitchen Dashboard</a>
+                  <a href="{{ url_for('food_maker.verification') }}" class="dropdown-item" id="nav-maker-verification"><i class="fa-solid fa-sparkles"></i> Daily Fresh Verification</a>
+                  <a href="{{ url_for('product.my_products') }}" class="dropdown-item" id="nav-maker-my-products"><i class="fa-solid fa-boxes-stacked"></i> My Food Products</a>
+                  <a href="{{ url_for('product.add_product') }}" class="dropdown-item" id="nav-maker-add-product"><i class="fa-solid fa-plus-circle"></i> Add New Product</a>
+                  <a href="{{ url_for('food_maker.food_maker_orders') }}" class="dropdown-item" id="nav-maker-kitchen-orders"><i class="fa-solid fa-receipt"></i> Kitchen Orders</a>
+                  {% if current_user.food_maker_profile %}
+                    <a href="{{ url_for('food_maker.food_maker_profile', maker_id=current_user.food_maker_profile.id) }}" class="dropdown-item"><i class="fa-solid fa-store"></i> View Public Kitchen Profile</a>
+                  {% endif %}
+                {% else %}
+                  <a href="{{ url_for('auth.customer_dashboard') }}" class="dropdown-item" id="nav-customer-dashboard"><i class="fa-solid fa-gauge"></i> My Dashboard</a>
+                  <a href="{{ url_for('order.customer_orders') }}" class="dropdown-item" id="nav-customer-orders"><i class="fa-solid fa-receipt"></i> My Orders</a>
+                  <a href="{{ url_for('cart.view_cart') }}" class="dropdown-item" id="nav-customer-cart"><i class="fa-solid fa-cart-shopping"></i> My Cart</a>
+                {% endif %}
+
+                <a href="{{ url_for('auth.profile') }}" class="dropdown-item" id="nav-profile"><i class="fa-solid fa-user-pen"></i> Edit Profile</a>
+                <div class="dropdown-divider"></div>
+                <a href="{{ url_for('auth.logout') }}" class="dropdown-item" id="nav-logout" style="color: var(--danger);"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+              </div>
+            </div>
+          {% else %}
+            <!-- Guest Links with Separate Role Portals -->
+            <a href="{{ url_for('auth.login', role='customer') }}" class="btn btn-outline btn-sm" id="nav-login-customer-btn">
+              <i class="fa-solid fa-user"></i> Customer Sign In
+            </a>
+            <a href="{{ url_for('auth.login', role='food_maker') }}" class="btn btn-secondary btn-sm" id="nav-login-maker-btn">
+              <i class="fa-solid fa-kitchen-set"></i> Food Maker Portal
+            </a>
+          {% endif %}
+
+          <!-- Mobile Toggle -->
+          <button class="mobile-nav-toggle" id="mobile-toggle-btn" aria-label="Toggle Navigation">
+            <i class="fa-solid fa-bars"></i>
+          </button>
+        </div>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Flash Messages -->
+  <div class="container flash-container">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }}" role="alert">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              {% if category == 'success' %}
+                <i class="fa-solid fa-circle-check"></i>
+              {% elif category == 'danger' %}
+                <i class="fa-solid fa-circle-exclamation"></i>
+              {% elif category == 'warning' %}
+                <i class="fa-solid fa-triangle-exclamation"></i>
+              {% else %}
+                <i class="fa-solid fa-circle-info"></i>
+              {% endif %}
+              <span>{{ message }}</span>
+            </div>
+            <button class="alert-close" onclick="this.parentElement.remove();">&times;</button>
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+  </div>
+
+  <!-- Main Content Area -->
+  <main id="main-content">
+    {% block content %}
+      {% if error_title %}
+        <div class="container" style="padding: 5rem 0; text-align: center;">
+          <h1 style="font-size: 3rem; color: var(--primary); margin-bottom: 1rem;">{{ error_title }}</h1>
+          <p style="font-size: 1.2rem; color: var(--gray-dark); margin-bottom: 2rem;">{{ error_msg }}</p>
+          <a href="{{ url_for('index') }}" class="btn btn-primary"><i class="fa-solid fa-house"></i> Return Home</a>
+        </div>
+      {% endif %}
+    {% endblock %}
+  </main>
+
+  <!-- Site Footer -->
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <a href="{{ url_for('index') }}" class="brand-logo" style="color: #FFFFFF; margin-bottom: 1rem;">
+            <i class="fa-solid fa-mortar-pestle" style="color: var(--accent);"></i>
+            <span>Flavor<span style="color: #48C78E;">Bridge</span></span>
+          </a>
+          <p>Connecting culinary food makers, traditional home chefs, and authentic spice artisans directly with food lovers across India.</p>
+          <div style="margin-top: 1.25rem; display: flex; gap: 0.75rem;">
+            <span class="badge badge-verified"><i class="fa-solid fa-shield-halved"></i> Internal Quality Verified</span>
+            <span class="badge badge-fresh"><i class="fa-solid fa-truck"></i> Cash on Delivery</span>
+          </div>
+        </div>
+
+        <div class="footer-col">
+          <h4>Regional Delicacies</h4>
+          <ul class="footer-links">
+            <li><a href="{{ url_for('product.products_list', category='Spice Powders & Seasonings') }}">Spice Powders & Podis</a></li>
+            <li><a href="{{ url_for('product.products_list', category='Traditional Snacks') }}">Artisanal Snacks</a></li>
+            <li><a href="{{ url_for('product.products_list', category='Traditional Sweets') }}">Pure Ghee Sweets</a></li>
+            <li><a href="{{ url_for('product.products_list', category='Pickles') }}">Sun-cured Pickles</a></li>
+            <li><a href="{{ url_for('product.products_list', category='Beverages') }}">Degree Coffee & Tea</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-col">
+          <h4>Smart AI Tools</h4>
+          <ul class="footer-links">
+            <li><a href="{{ url_for('ai.food_assistant') }}">Regional Food Assistant</a></li>
+            <li><a href="{{ url_for('ai.smart_search_view') }}">TF-IDF Smart Search</a></li>
+            <li><a href="{{ url_for('ai.recipe_partners') }}">Local Recipe Matcher</a></li>
+            <li><a href="{{ url_for('ai.recommendations') }}">Personalized Recommendations</a></li>
+            <li><a href="{{ url_for('food_maker.food_makers_list') }}">Verified Food Makers</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-col">
+          <h4>For Food Makers</h4>
+          <ul class="footer-links">
+            <li><a href="{{ url_for('auth.register', role='food_maker') }}">Join as a Food Maker</a></li>
+            <li><a href="{{ url_for('food_maker.verification') }}">Quality Verification System</a></li>
+            <li><a href="{{ url_for('auth.login') }}">Food Maker Sign In</a></li>
+            <li><a href="{{ url_for('product.products_list', product_type='Fresh Food') }}">Fresh Food Orders</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <p>&copy; 2026 FlavorBridge Marketplace. All rights reserved.</p>
+        <p style="font-size: 0.8rem; color: #95A5A6;">
+          <i class="fa-solid fa-circle-info"></i> Notice: The FlavorBridge Verification Score is an internal platform authenticity rating and does not substitute statutory governmental certifications.
+        </p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Core Scripts -->
+  <script src="{{ url_for('static', filename='js/cart.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/search.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/filters.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/validation.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/ai_assistant.js') }}"></script>
+  {% block extra_js %}{% endblock %}
+</body>
+</html>
