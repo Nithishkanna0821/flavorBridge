@@ -66,13 +66,11 @@
       </form>
 
       <!-- Registration Links -->
-      <div style="text-align: center; margin-top: 1.75rem; font-size: 0.88rem; color: var(--gray-dark); border-top: 1px solid #ECE7DE; padding-top: 1.25rem;" id="registration-footer-links">
-        <span id="reg-customer-text" style="display: {{ 'none' if role == 'food_maker' else 'inline' }};">
-          New to FlavorBridge? <a href="{{ url_for('auth.register', role='customer') }}" style="font-weight: 700; color: var(--primary);">Create Customer Account</a>
-        </span>
-        <span id="reg-maker-text" style="display: {{ 'inline' if role == 'food_maker' else 'none' }};">
-          Want to sell your traditional foods? <a href="{{ url_for('auth.register', role='food_maker') }}" style="font-weight: 700; color: var(--secondary);">Register as a Food Maker</a>
-        </span>
+      <div style="text-align: center; margin-top: 1.75rem; font-size: 0.9rem; color: var(--gray-dark); border-top: 1px solid #ECE7DE; padding-top: 1.25rem;" id="registration-footer-links">
+        <span>Don't have an account yet? </span>
+        <a href="{{ url_for('auth.register') }}" id="reg-link-btn" style="font-weight: 700; color: var(--primary); text-decoration: none; margin-left: 0.25rem;">
+          <i class="fa-solid fa-user-plus"></i> <span id="reg-link-text">{{ 'Register as Food Maker' if role == 'food_maker' else 'Sign Up / Create Account' }}</span>
+        </a>
       </div>
 
     </div>
@@ -92,8 +90,8 @@ function switchLoginPortal(role) {
   const submitBtn = document.getElementById('login-submit-btn');
   const submitLabel = document.getElementById('login-submit-label');
   const forgotLink = document.getElementById('forgot-password-link');
-  const regCustomer = document.getElementById('reg-customer-text');
-  const regMaker = document.getElementById('reg-maker-text');
+  const regLinkBtn = document.getElementById('reg-link-btn');
+  const regLinkText = document.getElementById('reg-link-text');
 
   roleInput.value = role;
 
@@ -123,8 +121,11 @@ function switchLoginPortal(role) {
       forgotLink.href = "{{ url_for('auth.forgot_password') }}?role=food_maker";
     }
 
-    regCustomer.style.display = 'none';
-    regMaker.style.display = 'inline';
+    if (regLinkBtn && regLinkText) {
+      regLinkBtn.href = "{{ url_for('auth.register') }}?role=food_maker";
+      regLinkBtn.style.color = 'var(--secondary)';
+      regLinkText.textContent = 'Register as Food Maker';
+    }
   } else {
     tabCustomer.style.background = 'var(--primary)';
     tabCustomer.style.color = '#FFFFFF';
@@ -151,8 +152,11 @@ function switchLoginPortal(role) {
       forgotLink.href = "{{ url_for('auth.forgot_password') }}?role=customer";
     }
 
-    regCustomer.style.display = 'inline';
-    regMaker.style.display = 'none';
+    if (regLinkBtn && regLinkText) {
+      regLinkBtn.href = "{{ url_for('auth.register') }}?role=customer";
+      regLinkBtn.style.color = 'var(--primary)';
+      regLinkText.textContent = 'Sign Up / Create Account';
+    }
   }
 }
 </script>

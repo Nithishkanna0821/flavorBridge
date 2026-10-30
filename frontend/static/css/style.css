@@ -2040,16 +2040,16 @@ textarea.form-control {
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.45);
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
   z-index: 999;
   opacity: 0;
+  pointer-events: none;
   transition: opacity var(--transition-fast);
 }
 
 .nav-backdrop.active {
   display: block;
   opacity: 1;
+  pointer-events: auto;
 }
 
 body.nav-open {
@@ -2062,6 +2062,12 @@ body.nav-open {
 
 /* Tablet & Smaller Laptops (<= 992px) */
 @media (max-width: 992px) {
+  .site-header {
+    background: #FFFFFF !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
   .navbar {
     height: 70px;
   }
@@ -2467,8 +2473,15 @@ body.nav-open {
   }
 
   .form-card {
-    padding: 1.25rem;
     border-radius: var(--radius-md);
+  }
+
+  .auth-card-body {
+    padding: 1.25rem 1rem !important;
+  }
+
+  .form-control {
+    font-size: 16px !important;
   }
 
   .cart-summary-card {

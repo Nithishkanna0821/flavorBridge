@@ -41,10 +41,6 @@
             <li><a href="{{ url_for('ai.food_assistant') }}" class="nav-link" id="nav-ai-assistant"><i class="fa-solid fa-robot"></i> Food Assistant <span class="ai-badge">AI</span></a></li>
             <li><a href="{{ url_for('ai.recipe_partners') }}" class="nav-link" id="nav-recipe-partners"><i class="fa-solid fa-user-group"></i> Recipe Partners</a></li>
             <li><a href="{{ url_for('ai.recommendations') }}" class="nav-link" id="nav-recommendations"><i class="fa-solid fa-wand-magic-sparkles"></i> For You</a></li>
-            {% if not current_user %}
-              <li class="mobile-only-link"><a href="{{ url_for('auth.login', role='customer') }}" class="nav-link" style="color: var(--primary); font-weight: 700;"><i class="fa-solid fa-right-to-bracket"></i> Customer Sign In</a></li>
-              <li class="mobile-only-link"><a href="{{ url_for('auth.register', role='customer') }}" class="nav-link" style="color: var(--secondary); font-weight: 700;"><i class="fa-solid fa-user-plus"></i> Sign Up / Create Account</a></li>
-            {% endif %}
           {% endif %}
 
           <!-- Mobile Only Auth & Quick Actions Drawer -->
@@ -71,9 +67,8 @@
               </div>
             {% else %}
               <div class="mobile-auth-buttons">
-                <a href="{{ url_for('auth.login', role='customer') }}" class="btn btn-primary btn-sm"><i class="fa-solid fa-right-to-bracket"></i> Customer Sign In</a>
-                <a href="{{ url_for('auth.register', role='customer') }}" class="btn btn-outline btn-sm" style="border-color: var(--primary); color: var(--primary); font-weight: 700; background: #FFFFFF;"><i class="fa-solid fa-user-plus"></i> New Customer? Sign Up</a>
-                <a href="{{ url_for('auth.login', role='food_maker') }}" class="btn btn-secondary btn-sm"><i class="fa-solid fa-kitchen-set"></i> Food Maker Portal</a>
+                <a href="{{ url_for('auth.login') }}" class="btn btn-primary btn-sm" id="drawer-login-btn"><i class="fa-solid fa-right-to-bracket"></i> Sign In</a>
+                <a href="{{ url_for('auth.register') }}" class="btn btn-outline btn-sm" id="drawer-register-btn" style="border-color: var(--primary); color: var(--primary); font-weight: 700; background: #FFFFFF;"><i class="fa-solid fa-user-plus"></i> Create Account / Sign Up</a>
               </div>
             {% endif %}
           </li>
@@ -138,13 +133,13 @@
               <span>Sign In</span>
             </a>
 
-            <!-- Desktop Guest Links (Visible on Desktop >= 992px) -->
+            <!-- Desktop Guest Auth Actions (Visible on Desktop >= 992px) -->
             <div class="desktop-auth-actions">
-              <a href="{{ url_for('auth.login', role='customer') }}" class="btn btn-outline btn-sm" id="nav-login-customer-btn">
-                <i class="fa-solid fa-user"></i> Customer Sign In
+              <a href="{{ url_for('auth.login') }}" class="btn btn-outline btn-sm" id="nav-signin-btn">
+                <i class="fa-solid fa-right-to-bracket"></i> Sign In
               </a>
-              <a href="{{ url_for('auth.login', role='food_maker') }}" class="btn btn-secondary btn-sm" id="nav-login-maker-btn">
-                <i class="fa-solid fa-kitchen-set"></i> Food Maker Portal
+              <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-sm" id="nav-signup-btn">
+                <i class="fa-solid fa-user-plus"></i> Sign Up
               </a>
             </div>
           {% endif %}
