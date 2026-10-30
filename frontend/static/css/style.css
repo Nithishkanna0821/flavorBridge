@@ -144,7 +144,7 @@ img {
 .site-header {
   position: sticky;
   top: 0;
-  z-index: 1000;
+  z-index: 1100;
   background: var(--bg-glass);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
@@ -2042,7 +2042,7 @@ textarea.form-control {
   background: rgba(0, 0, 0, 0.45);
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
-  z-index: 1040;
+  z-index: 999;
   opacity: 0;
   transition: opacity var(--transition-fast);
 }
@@ -2110,10 +2110,11 @@ body.nav-open {
     background: #FFFFFF;
     flex-direction: column;
     padding: 1.25rem 1.5rem 2rem;
-    box-shadow: 0 16px 36px rgba(0, 0, 0, 0.15);
-    border-bottom: 1px solid var(--gray-light);
-    gap: 0.4rem;
-    z-index: 1050;
+    box-shadow: 0 16px 36px rgba(0, 0, 0, 0.2);
+    border-bottom: 2px solid var(--primary);
+    gap: 0.5rem;
+    z-index: 1150;
+    pointer-events: auto;
   }
 
   .nav-links.open {

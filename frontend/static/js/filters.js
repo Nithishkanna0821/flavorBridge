@@ -82,10 +82,13 @@ function initMobileMenu() {
       backdrop.addEventListener('click', closeMenu);
     }
 
-    // Close when clicking any nav item on mobile
+    // Close when clicking anchor links on mobile
     const links = navLinks.querySelectorAll('a');
     links.forEach(link => {
-      link.addEventListener('click', closeMenu);
+      const href = link.getAttribute('href');
+      if (href && href.startsWith('#')) {
+        link.addEventListener('click', closeMenu);
+      }
     });
 
     // Close on escape key
