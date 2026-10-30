@@ -120,13 +120,25 @@ def login():
         session['user_role'] = user.role
         session['user_name'] = user.name
 
+        # Determine target redirect if next is provided
+        target_redirect = None
+        if next_url:
+            from urllib.parse import urlparse
+            parsed = urlparse(next_url)
+            if parsed.path and parsed.path.startswith('/'):
+                target_redirect = parsed.path
+                if parsed.query:
+                    target_redirect += '?' + parsed.query
+
         if user.role == 'food_maker':
             flash(f'Welcome to your Kitchen Dashboard, {user.name}!', 'success')
+            if target_redirect:
+                return redirect(target_redirect)
             return redirect(url_for('food_maker.dashboard'))
         else:
             flash(f'Welcome back, {user.name}!', 'success')
-            if next_url and next_url.startswith('/'):
-                return redirect(next_url)
+            if target_redirect:
+                return redirect(target_redirect)
             return redirect(url_for('product.products_list'))
 
     return render_template('login.html', next=request.args.get('next'), role=initial_role)

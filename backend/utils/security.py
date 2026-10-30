@@ -24,7 +24,7 @@ def login_required(f):
     def decorated_function(*args, **kwargs):
         if 'user_id' not in session:
             flash('Please log in to access this page.', 'warning')
-            return redirect(url_for('auth.login', next=request.url))
+            return redirect(url_for('auth.login', next=request.path))
         return f(*args, **kwargs)
     return decorated_function
 
@@ -35,7 +35,7 @@ def role_required(required_role):
         def decorated_function(*args, **kwargs):
             if 'user_id' not in session:
                 flash('Please log in to access this page.', 'warning')
-                return redirect(url_for('auth.login', next=request.url))
+                return redirect(url_for('auth.login', role=required_role, next=request.path))
             
             user_role = session.get('user_role')
             if user_role != required_role:

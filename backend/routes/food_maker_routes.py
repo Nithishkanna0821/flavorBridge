@@ -115,7 +115,7 @@ def verification():
         # Handle profile image upload
         image_file = request.files.get('profile_image')
         if image_file and image_file.filename:
-            upload_dir = os.path.join(current_app.root_path, 'uploads')
+            upload_dir = current_app.config.get('UPLOAD_FOLDER', os.path.join(current_app.root_path, 'uploads'))
             new_img = save_uploaded_image(image_file, upload_dir)
             if new_img:
                 maker.profile_image = new_img
@@ -168,7 +168,7 @@ def daily_verification_upload():
     image_filename = existing_log.dish_image if existing_log else ''
 
     if image_file and image_file.filename:
-        upload_dir = os.path.join(current_app.root_path, 'uploads')
+        upload_dir = current_app.config.get('UPLOAD_FOLDER', os.path.join(current_app.root_path, 'uploads'))
         new_img = save_uploaded_image(image_file, upload_dir)
         if new_img:
             image_filename = new_img

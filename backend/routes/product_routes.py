@@ -132,22 +132,51 @@ def product_detail(product_id):
 
 
 @product_bp.route('/add-product', methods=['GET', 'POST'])
-@login_required
-@role_required('food_maker')
 def add_product():
     user_id = session.get('user_id')
-    maker = FoodMaker.query.filter_by(user_id=user_id).first_or_404()
+    user = User.query.get(user_id) if user_id else None
+
+    # If visitor is not logged in or is not a food maker:
+    if not user or user.role != 'food_maker':
+        if request.method == 'POST':
+            flash('Please sign in to your Food Maker partner account to publish products.', 'warning')
+            return redirect(url_for('auth.login', role='food_maker', next=url_for('product.add_product')))
+
+        # Render add_product.html with guidance card and disabled preview
+        return render_template(
+            'add_product.html',
+            categories=FOOD_CATEGORIES,
+            maker=None,
+            is_authenticated_maker=False,
+            current_user=user
+        )
+
+    # User is an authenticated food maker
+    maker = FoodMaker.query.filter_by(user_id=user.id).first()
+    if not maker:
+        maker = FoodMaker(user_id=user.id, speciality='Authentic Regional Cuisine', years_experience=3)
+        maker.calculate_verification_score()
+        db.session.add(maker)
+        db.session.commit()
 
     if request.method == 'POST':
         is_valid, err_msg = validate_product_data(request.form)
         if not is_valid:
             flash(err_msg, 'danger')
-            return render_template('add_product.html', categories=FOOD_CATEGORIES, maker=maker)
+            return render_template('add_product.html', categories=FOOD_CATEGORIES, maker=maker, is_authenticated_maker=True)
 
-        name = request.form.get('name').strip()
-        category = request.form.get('category').strip()
-        price = float(request.form.get('price'))
-        stock = int(request.form.get('stock', 10))
+        name = request.form.get('name', '').strip()
+        category = request.form.get('category', '').strip()
+        try:
+            price = float(request.form.get('price', 0))
+        except (ValueError, TypeError):
+            price = 0.0
+
+        try:
+            stock = int(request.form.get('stock', 10))
+        except (ValueError, TypeError):
+            stock = 10
+
         product_type = request.form.get('product_type', 'Packaged Food').strip()
         preparation_time = request.form.get('preparation_time', '1 day').strip()
         net_quantity = request.form.get('net_quantity', '250g').strip()
@@ -156,11 +185,11 @@ def add_product():
         ingredients = request.form.get('ingredients', '').strip()
         description = request.form.get('description', '').strip()
 
-        # Handle image upload
+        # Handle image upload safely with Vercel upload directory
         image_file = request.files.get('image')
         image_filename = ''
         if image_file and image_file.filename:
-            upload_dir = os.path.join(current_app.root_path, 'uploads')
+            upload_dir = current_app.config.get('UPLOAD_FOLDER', os.path.join(current_app.root_path, 'uploads'))
             image_filename = save_uploaded_image(image_file, upload_dir)
 
         product = Product(
@@ -188,7 +217,7 @@ def add_product():
         flash(f'Product "{name}" ({net_quantity}) added successfully to your regional kitchen catalog!', 'success')
         return redirect(url_for('product.my_products'))
 
-    return render_template('add_product.html', categories=FOOD_CATEGORIES, maker=maker)
+    return render_template('add_product.html', categories=FOOD_CATEGORIES, maker=maker, is_authenticated_maker=True)
 
 
 @product_bp.route('/edit-product/<int:product_id>', methods=['GET', 'POST'])
@@ -223,7 +252,7 @@ def edit_product(product_id):
         # Handle image upload if a new one was provided
         image_file = request.files.get('image')
         if image_file and image_file.filename:
-            upload_dir = os.path.join(current_app.root_path, 'uploads')
+            upload_dir = current_app.config.get('UPLOAD_FOLDER', os.path.join(current_app.root_path, 'uploads'))
             new_image = save_uploaded_image(image_file, upload_dir)
             if new_image:
                 product.image = new_image
