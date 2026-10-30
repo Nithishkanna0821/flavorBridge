@@ -23,9 +23,21 @@
           <a href="{{ url_for('product.products_list') }}" class="btn btn-primary btn-lg" id="hero-btn-explore">
             <i class="fa-solid fa-compass"></i> Explore Foods
           </a>
-          <a href="{{ url_for('auth.register', role='food_maker') }}" class="btn btn-outline btn-lg" id="hero-btn-maker">
-            <i class="fa-solid fa-kitchen-set"></i> Become a Food Maker
-          </a>
+          {% if current_user %}
+            {% if current_user.role == 'food_maker' %}
+              <a href="{{ url_for('food_maker.dashboard') }}" class="btn btn-outline btn-lg" id="hero-btn-maker">
+                <i class="fa-solid fa-gauge"></i> Kitchen Dashboard
+              </a>
+            {% else %}
+              <a href="{{ url_for('ai.food_assistant') }}" class="btn btn-outline btn-lg" id="hero-btn-maker">
+                <i class="fa-solid fa-robot"></i> AI Food Assistant
+              </a>
+            {% endif %}
+          {% else %}
+            <a href="{{ url_for('auth.register', role='food_maker') }}" class="btn btn-outline btn-lg" id="hero-btn-maker">
+              <i class="fa-solid fa-kitchen-set"></i> Become a Food Maker
+            </a>
+          {% endif %}
         </div>
 
         <!-- Integrated Search Bar -->
@@ -389,6 +401,7 @@
 </section>
 
 <!-- Call to Action Banner -->
+{% if not current_user %}
 <section style="background: linear-gradient(135deg, var(--primary) 0%, #BA4A00 100%); color: #FFFFFF; padding: 4rem 0;">
   <div class="container text-center" style="text-align: center;">
     <h2 style="font-size: 2.3rem; color: #FFFFFF; margin-bottom: 1rem;">Are You a Traditional Cook or Food Maker?</h2>
@@ -400,4 +413,39 @@
     </a>
   </div>
 </section>
+{% elif current_user.role == 'food_maker' %}
+<section style="background: linear-gradient(135deg, var(--secondary) 0%, #196F3D 100%); color: #FFFFFF; padding: 3.5rem 0;">
+  <div class="container text-center" style="text-align: center;">
+    <h2 style="font-size: 2.2rem; color: #FFFFFF; margin-bottom: 0.85rem;">Grow Your Food Heritage Brand</h2>
+    <p style="font-size: 1.05rem; opacity: 0.95; max-width: 650px; margin: 0 auto 1.8rem;">
+      Keep your kitchen fresh verification active and publish new traditional delicacies to reach customers across India.
+    </p>
+    <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+      <a href="{{ url_for('product.add_product') }}" class="btn btn-secondary btn-lg" style="background: #FFFFFF; color: var(--secondary);">
+        <i class="fa-solid fa-plus-circle"></i> + Add New Dish
+      </a>
+      <a href="{{ url_for('food_maker.dashboard') }}" class="btn btn-outline btn-lg" style="border-color: #FFFFFF; color: #FFFFFF; background: transparent;">
+        <i class="fa-solid fa-gauge"></i> Kitchen Dashboard
+      </a>
+    </div>
+  </div>
+</section>
+{% else %}
+<section style="background: linear-gradient(135deg, var(--primary) 0%, #BA4A00 100%); color: #FFFFFF; padding: 3.5rem 0;">
+  <div class="container text-center" style="text-align: center;">
+    <h2 style="font-size: 2.2rem; color: #FFFFFF; margin-bottom: 0.85rem;">Craving Authentic Regional Flavors?</h2>
+    <p style="font-size: 1.05rem; opacity: 0.95; max-width: 650px; margin: 0 auto 1.8rem;">
+      Let our Regional AI Food Assistant find the perfect dishes suited to your palate and regional cravings.
+    </p>
+    <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+      <a href="{{ url_for('ai.food_assistant') }}" class="btn btn-secondary btn-lg" style="background: #FFFFFF; color: var(--primary);">
+        <i class="fa-solid fa-robot"></i> Ask AI Food Assistant
+      </a>
+      <a href="{{ url_for('product.products_list') }}" class="btn btn-outline btn-lg" style="border-color: #FFFFFF; color: #FFFFFF; background: transparent;">
+        <i class="fa-solid fa-compass"></i> Explore All Delicacies
+      </a>
+    </div>
+  </div>
+</section>
+{% endif %}
 {% endblock %}

@@ -15,14 +15,20 @@ def get_current_user():
     """Retrieve the currently authenticated User instance, or None."""
     user_id = session.get('user_id')
     if user_id:
-        return User.query.get(user_id)
+        user = User.query.get(user_id)
+        if not user:
+            session.clear()
+            return None
+        return user
     return None
 
 def login_required(f):
     """Decorator to enforce that the user is logged in."""
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        if 'user_id' not in session:
+        user_id = session.get('user_id')
+        if not user_id or not User.query.get(user_id):
+            session.clear()
             flash('Please log in to access this page.', 'warning')
             return redirect(url_for('auth.login', next=request.path))
         return f(*args, **kwargs)
@@ -33,14 +39,20 @@ def role_required(required_role):
     def decorator(f):
         @wraps(f)
         def decorated_function(*args, **kwargs):
-            if 'user_id' not in session:
+            user_id = session.get('user_id')
+            if not user_id:
                 flash('Please log in to access this page.', 'warning')
                 return redirect(url_for('auth.login', role=required_role, next=request.path))
             
-            user_role = session.get('user_role')
-            if user_role != required_role:
+            user = User.query.get(user_id)
+            if not user:
+                session.clear()
+                flash('Please log in to access this page.', 'warning')
+                return redirect(url_for('auth.login', role=required_role, next=request.path))
+
+            if user.role != required_role:
                 flash(f'Access restricted. This section is for {required_role.replace("_", " ")}s only.', 'danger')
-                if user_role == 'food_maker':
+                if user.role == 'food_maker':
                     return redirect(url_for('food_maker.dashboard'))
                 return redirect(url_for('auth.customer_dashboard'))
             return f(*args, **kwargs)

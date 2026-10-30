@@ -19,14 +19,17 @@
           <h2 style="font-size: 1.6rem; color: var(--dark); margin: 0 0 0.5rem;">Publish Your Traditional Delicacies</h2>
           {% if current_user %}
             <p style="color: var(--gray-dark); font-size: 0.95rem; margin-bottom: 1.25rem; line-height: 1.5;">
-              You are currently signed in as a Customer (<strong>{{ current_user.email }}</strong>). Listing dishes and selling regional delicacies is reserved for verified Food Maker partners.
+              You are currently signed in as a Customer (<strong>{{ current_user.email }}</strong>). Listing dishes and selling regional delicacies is reserved for verified Food Maker partner kitchens.
             </p>
-            <div style="display: flex; gap: 0.85rem; flex-wrap: wrap;">
-              <a href="{{ url_for('auth.register', role='food_maker') }}" class="btn btn-primary" id="btn-maker-join">
-                <i class="fa-solid fa-store"></i> Register as a Food Maker
+            <div style="display: flex; gap: 0.85rem; flex-wrap: wrap; align-items: center;">
+              <a href="{{ url_for('product.products_list') }}" class="btn btn-primary" id="btn-browse-delicacies">
+                <i class="fa-solid fa-compass"></i> Explore Regional Dishes
               </a>
-              <a href="{{ url_for('auth.login', role='food_maker', next=url_for('product.add_product')) }}" class="btn btn-outline" id="btn-maker-switch" style="border-color: var(--primary); color: var(--primary); background: #FFFFFF;">
-                <i class="fa-solid fa-right-to-bracket"></i> Sign In to Food Maker Account
+              <a href="{{ url_for('auth.customer_dashboard') }}" class="btn btn-outline" id="btn-customer-dash">
+                <i class="fa-solid fa-gauge"></i> My Dashboard
+              </a>
+              <a href="{{ url_for('auth.logout') }}" class="btn btn-outline btn-sm" style="border-color: var(--danger); color: var(--danger);">
+                <i class="fa-solid fa-right-from-bracket"></i> Sign Out
               </a>
             </div>
           {% else %}
@@ -151,6 +154,15 @@
               <i class="fa-solid fa-cloud-arrow-up"></i> Publish Product to Catalog
             </button>
             <a href="{{ url_for('product.my_products') }}" class="btn btn-outline btn-lg">Cancel</a>
+          </div>
+        {% elif current_user %}
+          <div style="display: flex; gap: 1rem; margin-top: 2rem; flex-wrap: wrap; align-items: center;">
+            <a href="{{ url_for('product.products_list') }}" class="btn btn-primary btn-lg">
+              <i class="fa-solid fa-compass"></i> Browse Marketplace
+            </a>
+            <a href="{{ url_for('auth.customer_dashboard') }}" class="btn btn-outline btn-lg">
+              <i class="fa-solid fa-gauge"></i> My Dashboard
+            </a>
           </div>
         {% else %}
           <div style="display: flex; gap: 1rem; margin-top: 2rem; flex-wrap: wrap; align-items: center;">

@@ -8,8 +8,11 @@ auth_bp = Blueprint('auth', __name__)
 
 @auth_bp.route('/register', methods=['GET', 'POST'])
 def register():
-    if 'user_id' in session:
-        return redirect(url_for('index'))
+    user_id = session.get('user_id')
+    if user_id:
+        existing = User.query.get(user_id)
+        if not existing:
+            session.clear()
 
     if request.method == 'POST':
         name = request.form.get('name', '').strip()
@@ -91,11 +94,11 @@ def register():
 
 @auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
-    if 'user_id' in session:
-        user_role = session.get('user_role')
-        if user_role == 'food_maker':
-            return redirect(url_for('food_maker.dashboard'))
-        return redirect(url_for('index'))
+    user_id = session.get('user_id')
+    if user_id:
+        existing = User.query.get(user_id)
+        if not existing:
+            session.clear()
 
     initial_role = request.args.get('role', 'customer')
 

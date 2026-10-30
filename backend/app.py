@@ -72,11 +72,17 @@ def create_app():
     @app.context_processor
     def inject_globals():
         user_id = session.get('user_id')
-        current_user = User.query.get(user_id) if user_id else None
+        current_user = None
+        if user_id:
+            current_user = User.query.get(user_id)
+            if not current_user:
+                # Clear invalid/orphaned session to prevent zombie lockout
+                session.clear()
+                user_id = None
         
         cart_count = 0
-        if user_id:
-            cart = Cart.query.filter_by(customer_id=user_id).first()
+        if current_user:
+            cart = Cart.query.filter_by(customer_id=current_user.id).first()
             if cart:
                 cart_count = cart.total_items
 

@@ -233,13 +233,31 @@
         </div>
 
         <div class="footer-col">
-          <h4>For Food Makers</h4>
-          <ul class="footer-links">
-            <li><a href="{{ url_for('auth.register', role='food_maker') }}">Join as a Food Maker</a></li>
-            <li><a href="{{ url_for('food_maker.verification') }}">Quality Verification System</a></li>
-            <li><a href="{{ url_for('auth.login') }}">Food Maker Sign In</a></li>
-            <li><a href="{{ url_for('product.products_list', product_type='Fresh Food') }}">Fresh Food Orders</a></li>
-          </ul>
+          {% if current_user and current_user.role == 'food_maker' %}
+            <h4>Food Maker Tools</h4>
+            <ul class="footer-links">
+              <li><a href="{{ url_for('food_maker.dashboard') }}">Kitchen Dashboard</a></li>
+              <li><a href="{{ url_for('food_maker.verification') }}">Daily Verification</a></li>
+              <li><a href="{{ url_for('product.add_product') }}">+ Add New Dish</a></li>
+              <li><a href="{{ url_for('product.my_products') }}">My Dishes Catalog</a></li>
+            </ul>
+          {% elif current_user and current_user.role == 'customer' %}
+            <h4>My Account</h4>
+            <ul class="footer-links">
+              <li><a href="{{ url_for('auth.customer_dashboard') }}">My Dashboard</a></li>
+              <li><a href="{{ url_for('order.customer_orders') }}">My Orders</a></li>
+              <li><a href="{{ url_for('cart.view_cart') }}">My Cart</a></li>
+              <li><a href="{{ url_for('product.products_list') }}">Explore Foods</a></li>
+            </ul>
+          {% else %}
+            <h4>For Food Makers</h4>
+            <ul class="footer-links">
+              <li><a href="{{ url_for('auth.register', role='food_maker') }}">Join as a Food Maker</a></li>
+              <li><a href="{{ url_for('food_maker.verification') }}">Quality Verification System</a></li>
+              <li><a href="{{ url_for('auth.login') }}">Food Maker Sign In</a></li>
+              <li><a href="{{ url_for('product.products_list', product_type='Fresh Food') }}">Fresh Food Orders</a></li>
+            </ul>
+          {% endif %}
         </div>
       </div>
 

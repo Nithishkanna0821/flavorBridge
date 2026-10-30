@@ -6,6 +6,22 @@
 <div class="container container-narrow" style="padding: 3.5rem 1.25rem;">
   <div class="form-card" style="max-width: 520px; margin: 0 auto; box-shadow: var(--shadow-lg); border-radius: 20px; overflow: hidden; padding: 0;">
     
+    {% if current_user %}
+      <div style="background: #E8F8F5; border-bottom: 1px solid #A2D9CE; padding: 1.25rem 1.5rem; text-align: center;">
+        <div style="color: #0E6251; font-size: 0.92rem; margin-bottom: 0.75rem;">
+          <i class="fa-solid fa-circle-check"></i> You are currently signed in as <strong>{{ current_user.name }}</strong> ({{ current_user.email }}) &mdash; <span class="badge {{ 'badge-verified' if current_user.role == 'food_maker' else 'badge-category' }}">{{ 'Food Maker Partner' if current_user.role == 'food_maker' else 'Customer' }}</span>
+        </div>
+        <div style="display: flex; gap: 0.75rem; justify-content: center; flex-wrap: wrap;">
+          {% if current_user.role == 'food_maker' %}
+            <a href="{{ url_for('food_maker.dashboard') }}" class="btn btn-primary btn-sm"><i class="fa-solid fa-gauge"></i> Go to Kitchen Dashboard</a>
+          {% else %}
+            <a href="{{ url_for('auth.customer_dashboard') }}" class="btn btn-primary btn-sm"><i class="fa-solid fa-gauge"></i> Go to My Dashboard</a>
+          {% endif %}
+          <a href="{{ url_for('auth.logout') }}" class="btn btn-outline btn-sm" style="border-color: var(--danger); color: var(--danger); background: #FFFFFF;"><i class="fa-solid fa-right-from-bracket"></i> Sign Out to Switch Account</a>
+        </div>
+      </div>
+    {% endif %}
+
     <!-- Portal Header & Role Tabs Switcher -->
     <div style="background: linear-gradient(135deg, #FAF7F2, #F3EBDD); padding: 1.5rem 1.5rem 0.5rem; border-bottom: 1px solid #ECE7DE;">
       <div style="text-align: center; margin-bottom: 1.25rem;">
