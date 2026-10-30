@@ -19,6 +19,12 @@
   </div>
 
   <div class="catalog-layout">
+    <!-- Mobile Filter Toggle Button -->
+    <button type="button" class="mobile-filter-toggle" id="mobile-filter-toggle-btn" onclick="const s = document.querySelector('.filter-sidebar'); s.classList.toggle('open'); const icon = this.querySelector('.toggle-icon'); if(icon){ icon.classList.toggle('fa-chevron-down'); icon.classList.toggle('fa-chevron-up'); }">
+      <span><i class="fa-solid fa-sliders" style="color: var(--primary); margin-right: 6px;"></i> Filter & Refine Foods</span>
+      <i class="fa-solid fa-chevron-down toggle-icon"></i>
+    </button>
+
     <!-- Filter Sidebar -->
     <aside class="filter-sidebar">
       <form method="GET" action="{{ url_for('product.products_list') }}" id="catalog-filter-form">

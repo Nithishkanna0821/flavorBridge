@@ -39,14 +39,58 @@ function initFilterControls() {
 function initMobileMenu() {
   const toggleBtn = document.querySelector('.mobile-nav-toggle');
   const navLinks = document.querySelector('.nav-links');
+  const backdrop = document.getElementById('nav-backdrop');
 
-  if (toggleBtn && navLinks) {
-    toggleBtn.addEventListener('click', () => {
-      navLinks.classList.toggle('open');
+  function openMenu() {
+    if (navLinks) navLinks.classList.add('open');
+    if (backdrop) backdrop.classList.add('active');
+    document.body.classList.add('nav-open');
+    if (toggleBtn) {
       const icon = toggleBtn.querySelector('i');
       if (icon) {
-        icon.classList.toggle('fa-bars');
-        icon.classList.toggle('fa-xmark');
+        icon.classList.remove('fa-bars');
+        icon.classList.add('fa-xmark');
+      }
+    }
+  }
+
+  function closeMenu() {
+    if (navLinks) navLinks.classList.remove('open');
+    if (backdrop) backdrop.classList.remove('active');
+    document.body.classList.remove('nav-open');
+    if (toggleBtn) {
+      const icon = toggleBtn.querySelector('i');
+      if (icon) {
+        icon.classList.remove('fa-xmark');
+        icon.classList.add('fa-bars');
+      }
+    }
+  }
+
+  if (toggleBtn && navLinks) {
+    toggleBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (navLinks.classList.contains('open')) {
+        closeMenu();
+      } else {
+        openMenu();
+      }
+    });
+
+    if (backdrop) {
+      backdrop.addEventListener('click', closeMenu);
+    }
+
+    // Close when clicking any nav item on mobile
+    const links = navLinks.querySelectorAll('a');
+    links.forEach(link => {
+      link.addEventListener('click', closeMenu);
+    });
+
+    // Close on escape key
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && navLinks.classList.contains('open')) {
+        closeMenu();
       }
     });
   }

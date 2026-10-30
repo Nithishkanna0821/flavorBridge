@@ -71,7 +71,7 @@
         <span style="font-size: 0.82rem; color: var(--gray-medium);">Logged by maker at {{ d_log.created_at.strftime('%I:%M %p') }}</span>
       </div>
 
-      <div style="display: grid; grid-template-columns: 180px 1fr; gap: 2rem; align-items: center;">
+      <div class="profile-hero-grid">
         <div style="width: 180px; height: 140px; border-radius: 12px; overflow: hidden; background: #FAF7F2; border: 1px solid #ECE7DE; display: flex; align-items: center; justify-content: center;">
           {% if d_log.dish_image %}
             <img src="{{ url_for('uploaded_file', filename=d_log.dish_image) }}" alt="Today's Fresh Dish" style="width: 100%; height: 100%; object-fit: cover;">
