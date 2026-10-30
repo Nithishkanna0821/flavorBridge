@@ -5,6 +5,7 @@
 document.addEventListener('DOMContentLoaded', () => {
   initFilterControls();
   initMobileMenu();
+  initUserDropdown();
 });
 
 function initFilterControls() {
@@ -91,6 +92,38 @@ function initMobileMenu() {
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape' && navLinks.classList.contains('open')) {
         closeMenu();
+      }
+    });
+  }
+}
+
+function initUserDropdown() {
+  const userMenu = document.querySelector('.user-menu');
+  const userBtn = document.querySelector('.user-btn');
+  const dropdown = document.querySelector('.dropdown-menu');
+
+  if (userMenu && userBtn) {
+    userBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const isOpen = userMenu.classList.contains('open');
+      userMenu.classList.toggle('open');
+      userBtn.setAttribute('aria-expanded', !isOpen);
+    });
+
+    // Close when clicking outside
+    document.addEventListener('click', (e) => {
+      if (!userMenu.contains(e.target)) {
+        userMenu.classList.remove('open');
+        userBtn.setAttribute('aria-expanded', 'false');
+      }
+    });
+
+    // Close on Escape key
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        userMenu.classList.remove('open');
+        userBtn.setAttribute('aria-expanded', 'false');
       }
     });
   }
