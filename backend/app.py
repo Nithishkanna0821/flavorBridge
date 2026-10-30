@@ -20,9 +20,10 @@ def create_app():
     # Handle Vercel Serverless environment
     if os.environ.get('VERCEL'):
         tmp_db_path = '/tmp/database.db'
-        if not os.path.exists(tmp_db_path) and os.path.exists(db_file_path):
+        if os.path.exists(db_file_path):
             try:
-                shutil.copyfile(db_file_path, tmp_db_path)
+                if not os.path.exists(tmp_db_path) or os.path.getmtime(db_file_path) > os.path.getmtime(tmp_db_path):
+                    shutil.copyfile(db_file_path, tmp_db_path)
             except Exception:
                 pass
         db_file_path = tmp_db_path if os.path.exists(tmp_db_path) else db_file_path
@@ -44,14 +45,7 @@ def create_app():
     # App configuration
     app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'flavorbridge-super-secret-key-2026-production-ready')
     
-    # Database configuration (supports Supabase/Neon PostgreSQL or local SQLite)
-    database_url = os.environ.get('DATABASE_URL')
-    if database_url:
-        if database_url.startswith('postgres://'):
-            database_url = database_url.replace('postgres://', 'postgresql://', 1)
-        app.config['SQLALCHEMY_DATABASE_URI'] = database_url
-    else:
-        app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{db_file_path}"
+    app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{db_file_path}"
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['UPLOAD_FOLDER'] = upload_folder
     app.config['MAX_CONTENT_LENGTH'] = 10 * 1024 * 1024  # 10MB
