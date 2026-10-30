@@ -2,7 +2,7 @@ from datetime import datetime
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session, abort
 from backend.extensions import db
 from backend.models import User, Cart, Order, OrderItem, Product, Interaction, FoodMaker
-from backend.utils.security import login_required, role_required
+from backend.utils.security import login_required, role_required, get_or_create_food_maker
 
 order_bp = Blueprint('order', __name__)
 
@@ -175,7 +175,7 @@ def order_detail(order_id):
 @role_required('food_maker')
 def update_order_status():
     user_id = session.get('user_id')
-    maker = FoodMaker.query.filter_by(user_id=user_id).first_or_404()
+    maker = get_or_create_food_maker(user_id)
 
     order_id = request.form.get('order_id', type=int)
     new_status = request.form.get('status', '').strip()

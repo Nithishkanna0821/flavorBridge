@@ -2,7 +2,7 @@ import os
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session, current_app, abort
 from backend.extensions import db
 from backend.models import Product, FoodMaker, User, Review, Interaction
-from backend.utils.security import login_required, role_required
+from backend.utils.security import login_required, role_required, get_or_create_food_maker
 from backend.utils.validators import validate_product_data, save_uploaded_image
 from backend.ai.smart_search import search_products
 from backend.ai.recommender import get_similar_products
@@ -148,17 +148,7 @@ def add_product():
         db.session.commit()
 
     # Ensure maker kitchen profile exists
-    maker = FoodMaker.query.filter_by(user_id=user.id).first()
-    if not maker:
-        maker = FoodMaker(
-            user_id=user.id,
-            speciality='Authentic Regional Cuisine',
-            years_experience=3,
-            cuisines='Regional Traditional Dishes'
-        )
-        maker.calculate_verification_score()
-        db.session.add(maker)
-        db.session.commit()
+    maker = get_or_create_food_maker(user.id)
 
     if request.method == 'POST':
         is_valid, err_msg = validate_product_data(request.form)
@@ -226,7 +216,7 @@ def add_product():
 @role_required('food_maker')
 def edit_product(product_id):
     user_id = session.get('user_id')
-    maker = FoodMaker.query.filter_by(user_id=user_id).first_or_404()
+    maker = get_or_create_food_maker(user_id)
     product = Product.query.get_or_404(product_id)
 
     if product.food_maker_id != maker.id:
@@ -272,7 +262,7 @@ def edit_product(product_id):
 @role_required('food_maker')
 def delete_product(product_id):
     user_id = session.get('user_id')
-    maker = FoodMaker.query.filter_by(user_id=user_id).first_or_404()
+    maker = get_or_create_food_maker(user_id)
     product = Product.query.get_or_404(product_id)
 
     if product.food_maker_id != maker.id:
@@ -292,6 +282,6 @@ def delete_product(product_id):
 @role_required('food_maker')
 def my_products():
     user_id = session.get('user_id')
-    maker = FoodMaker.query.filter_by(user_id=user_id).first_or_404()
+    maker = get_or_create_food_maker(user_id)
     products = Product.query.filter_by(food_maker_id=maker.id).order_by(Product.created_at.desc()).all()
     return render_template('my_products.html', maker=maker, products=products)

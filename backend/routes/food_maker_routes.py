@@ -2,7 +2,7 @@ import os
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session, current_app, abort
 from backend.extensions import db
 from backend.models import FoodMaker, User, Product, Order, OrderItem, Review
-from backend.utils.security import login_required, role_required
+from backend.utils.security import login_required, role_required, get_or_create_food_maker
 from backend.utils.validators import save_uploaded_image
 
 food_maker_bp = Blueprint('food_maker', __name__)
@@ -56,7 +56,9 @@ def food_maker_profile(maker_id):
 @role_required('food_maker')
 def dashboard():
     user_id = session.get('user_id')
-    maker = FoodMaker.query.filter_by(user_id=user_id).first_or_404()
+    maker = get_or_create_food_maker(user_id)
+    if not maker:
+        return redirect(url_for('auth.login'))
 
     # Recalculate verification score to keep it fresh
     maker.calculate_verification_score()
@@ -94,7 +96,9 @@ from backend.models import DailyVerification
 @role_required('food_maker')
 def verification():
     user_id = session.get('user_id')
-    maker = FoodMaker.query.filter_by(user_id=user_id).first_or_404()
+    maker = get_or_create_food_maker(user_id)
+    if not maker:
+        return redirect(url_for('auth.login'))
     user = maker.user
 
     if request.method == 'POST':
@@ -151,7 +155,7 @@ def verification():
 def daily_verification_upload():
     """Uploads today's ingredients log and photo of the freshly prepared final dish."""
     user_id = session.get('user_id')
-    maker = FoodMaker.query.filter_by(user_id=user_id).first_or_404()
+    maker = get_or_create_food_maker(user_id)
 
     ingredients_used = request.form.get('ingredients_used', '').strip()
     dishes_prepared = request.form.get('dishes_prepared', '').strip()
@@ -208,7 +212,9 @@ def daily_verification_upload():
 @role_required('food_maker')
 def verification_status():
     user_id = session.get('user_id')
-    maker = FoodMaker.query.filter_by(user_id=user_id).first_or_404()
+    maker = get_or_create_food_maker(user_id)
+    if not maker:
+        return redirect(url_for('auth.login'))
     maker.calculate_verification_score()
     db.session.commit()
     today_log = maker.today_verification
@@ -220,7 +226,9 @@ def verification_status():
 @role_required('food_maker')
 def food_maker_orders():
     user_id = session.get('user_id')
-    maker = FoodMaker.query.filter_by(user_id=user_id).first_or_404()
+    maker = get_or_create_food_maker(user_id)
+    if not maker:
+        return redirect(url_for('auth.login'))
 
     # Find all orders containing this maker's items
     order_items = OrderItem.query.filter(OrderItem.food_maker_id == maker.id).all()
