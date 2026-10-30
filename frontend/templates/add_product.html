@@ -4,51 +4,6 @@
 
 {% block content %}
 <div class="container container-narrow" style="padding: 3.5rem 1.25rem;">
-  
-  {% if not is_authenticated_maker %}
-    <!-- Friendly Guidance Banner for Guests / Customers -->
-    <div class="form-card" style="margin-bottom: 2rem; border-left: 5px solid var(--primary); background: linear-gradient(135deg, #FFFBF7 0%, #FDF4E9 100%);">
-      <div style="display: flex; align-items: flex-start; gap: 1.25rem; flex-wrap: wrap;">
-        <div style="width: 52px; height: 52px; border-radius: 50%; background: var(--primary); color: #FFFFFF; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; flex-shrink: 0;">
-          <i class="fa-solid fa-kitchen-set"></i>
-        </div>
-        <div style="flex: 1; min-width: 260px;">
-          <div style="display: inline-block; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.8px; font-weight: 700; color: var(--primary); margin-bottom: 0.35rem;">
-            Food Maker Partner Access
-          </div>
-          <h2 style="font-size: 1.6rem; color: var(--dark); margin: 0 0 0.5rem;">Publish Your Traditional Delicacies</h2>
-          {% if current_user %}
-            <p style="color: var(--gray-dark); font-size: 0.95rem; margin-bottom: 1.25rem; line-height: 1.5;">
-              You are currently signed in as a Customer (<strong>{{ current_user.email }}</strong>). Listing dishes and selling regional delicacies is reserved for verified Food Maker partner kitchens.
-            </p>
-            <div style="display: flex; gap: 0.85rem; flex-wrap: wrap; align-items: center;">
-              <a href="{{ url_for('product.products_list') }}" class="btn btn-primary" id="btn-browse-delicacies">
-                <i class="fa-solid fa-compass"></i> Explore Regional Dishes
-              </a>
-              <a href="{{ url_for('auth.customer_dashboard') }}" class="btn btn-outline" id="btn-customer-dash">
-                <i class="fa-solid fa-gauge"></i> My Dashboard
-              </a>
-              <a href="{{ url_for('auth.logout') }}" class="btn btn-outline btn-sm" style="border-color: var(--danger); color: var(--danger);">
-                <i class="fa-solid fa-right-from-bracket"></i> Sign Out
-              </a>
-            </div>
-          {% else %}
-            <p style="color: var(--gray-dark); font-size: 0.95rem; margin-bottom: 1.25rem; line-height: 1.5;">
-              FlavorBridge connects artisanal food artisans, home chefs, and traditional sweet & spice makers directly with food lovers across India. Sign in or register your kitchen to add your dishes.
-            </p>
-            <div style="display: flex; gap: 0.85rem; flex-wrap: wrap;">
-              <a href="{{ url_for('auth.login', role='food_maker', next=url_for('product.add_product')) }}" class="btn btn-primary" id="btn-guest-maker-login">
-                <i class="fa-solid fa-right-to-bracket"></i> Sign In to Food Maker Portal
-              </a>
-              <a href="{{ url_for('auth.register', role='food_maker') }}" class="btn btn-outline" id="btn-guest-maker-register" style="border-color: var(--primary); color: var(--primary); background: #FFFFFF;">
-                <i class="fa-solid fa-user-plus"></i> Register as a Food Maker
-              </a>
-            </div>
-          {% endif %}
-        </div>
-      </div>
-    </div>
-  {% endif %}
 
   <!-- Product Form Card -->
   <div class="form-card" style="box-shadow: var(--shadow-lg); border-radius: 20px; overflow: hidden; padding: 0;">
@@ -56,11 +11,7 @@
     <!-- Header Banner -->
     <div style="background: linear-gradient(135deg, #FAF7F2, #F3EBDD); padding: 1.75rem 1.75rem 1.25rem; border-bottom: 1px solid #ECE7DE;">
       <div style="font-size: 0.85rem; color: var(--gray-medium); margin-bottom: 0.35rem;">
-        {% if is_authenticated_maker %}
-          <a href="{{ url_for('food_maker.dashboard') }}" style="color: var(--primary); font-weight: 600;"><i class="fa-solid fa-gauge"></i> Kitchen Dashboard</a> &gt; <span>Add Product</span>
-        {% else %}
-          <a href="{{ url_for('index') }}" style="color: var(--primary); font-weight: 600;"><i class="fa-solid fa-house"></i> Home</a> &gt; <span>Add Product</span>
-        {% endif %}
+        <a href="{{ url_for('food_maker.dashboard') }}" style="color: var(--primary); font-weight: 600;"><i class="fa-solid fa-gauge"></i> Kitchen Dashboard</a> &gt; <span>Add Product</span>
       </div>
       <h1 style="font-size: 1.9rem; color: var(--dark); margin: 0 0 0.35rem;">Add New Regional Delicacy</h1>
       <p style="color: var(--gray-dark); font-size: 0.92rem; margin: 0;">
@@ -74,12 +25,12 @@
         <div class="form-row">
           <div class="form-group">
             <label class="form-label" for="prod-name"><i class="fa-solid fa-utensils"></i> Dish / Product Name *</label>
-            <input type="text" id="prod-name" name="name" class="form-control" placeholder="e.g. Traditional Kari Dosa Podi, Tirunelveli Halwa" required {{ '' if is_authenticated_maker else 'disabled' }}>
+            <input type="text" id="prod-name" name="name" class="form-control" placeholder="e.g. Traditional Kari Dosa Podi, Tirunelveli Halwa" required>
           </div>
 
           <div class="form-group">
             <label class="form-label" for="prod-category"><i class="fa-solid fa-layer-group"></i> Food Category *</label>
-            <select id="prod-category" name="category" class="form-control" required {{ '' if is_authenticated_maker else 'disabled' }}>
+            <select id="prod-category" name="category" class="form-control" required>
               <option value="">-- Select Category --</option>
               {% for cat in categories %}
                 <option value="{{ cat }}">{{ cat }}</option>
@@ -91,17 +42,17 @@
         <div class="form-row">
           <div class="form-group">
             <label class="form-label" for="prod-price"><i class="fa-solid fa-indian-rupee-sign"></i> Price (₹) *</label>
-            <input type="number" id="prod-price" name="price" class="form-control" placeholder="180.00" step="0.5" min="1" required {{ '' if is_authenticated_maker else 'disabled' }}>
+            <input type="number" id="prod-price" name="price" class="form-control" placeholder="180.00" step="0.5" min="1" required>
           </div>
 
           <div class="form-group">
             <label class="form-label" for="prod-stock"><i class="fa-solid fa-boxes-stacked"></i> Available Stock Units *</label>
-            <input type="number" id="prod-stock" name="stock" class="form-control" value="25" min="0" required {{ '' if is_authenticated_maker else 'disabled' }}>
+            <input type="number" id="prod-stock" name="stock" class="form-control" value="25" min="0" required>
           </div>
 
           <div class="form-group">
             <label class="form-label" for="prod-type"><i class="fa-solid fa-shield-halved"></i> Product Type *</label>
-            <select id="prod-type" name="product_type" class="form-control" required {{ '' if is_authenticated_maker else 'disabled' }}>
+            <select id="prod-type" name="product_type" class="form-control" required>
               <option value="Packaged Food">Packaged Food (Shelf-stable)</option>
               <option value="Fresh Food">Fresh Food (Cooked on-demand)</option>
             </select>
@@ -109,72 +60,53 @@
 
           <div class="form-group">
             <label class="form-label" for="prod-net-qty"><i class="fa-solid fa-weight-scale"></i> Package Quantity / Weight *</label>
-            <input type="text" id="prod-net-qty" name="net_quantity" class="form-control" placeholder="e.g. 250 grams, 500g, 1 kg" value="250 grams" required {{ '' if is_authenticated_maker else 'disabled' }}>
+            <input type="text" id="prod-net-qty" name="net_quantity" class="form-control" placeholder="e.g. 250 grams, 500g, 1 kg" value="250 grams" required>
           </div>
         </div>
 
         <div class="form-row">
           <div class="form-group">
             <label class="form-label" for="prod-prep-time"><i class="fa-solid fa-clock"></i> Preparation / Dispatch Time</label>
-            <input type="text" id="prod-prep-time" name="preparation_time" class="form-control" placeholder="e.g. 1 day / 45 mins" value="1 day" {{ '' if is_authenticated_maker else 'disabled' }}>
+            <input type="text" id="prod-prep-time" name="preparation_time" class="form-control" placeholder="e.g. 1 day / 45 mins" value="1 day">
           </div>
 
           <div class="form-group">
             <label class="form-label" for="prod-city"><i class="fa-solid fa-location-dot"></i> City Origin *</label>
-            <input type="text" id="prod-city" name="city" class="form-control" value="{{ (maker.user.city if maker and maker.user else '') or 'Chennai' }}" required {{ '' if is_authenticated_maker else 'disabled' }}>
+            <input type="text" id="prod-city" name="city" class="form-control" value="{{ (maker.user.city if maker and maker.user else '') or 'Chennai' }}" required>
           </div>
 
           <div class="form-group">
             <label class="form-label" for="prod-region"><i class="fa-solid fa-map-location-dot"></i> Regional Culinary Tradition</label>
-            <input type="text" id="prod-region" name="region" class="form-control" placeholder="e.g. Madurai Tradition, Chettinad" value="{{ (maker.cuisines if maker else '') or '' }}" {{ '' if is_authenticated_maker else 'disabled' }}>
+            <input type="text" id="prod-region" name="region" class="form-control" placeholder="e.g. Madurai Tradition, Chettinad" value="{{ (maker.cuisines if maker else '') or '' }}">
           </div>
         </div>
 
         <div class="form-group">
           <label class="form-label" for="prod-ingredients"><i class="fa-solid fa-leaf"></i> Authentic Ingredients *</label>
-          <textarea id="prod-ingredients" name="ingredients" class="form-control" rows="2" placeholder="List all natural spices, flours, oils used (e.g. Cold-pressed Sesame Oil, Guntur Chillies, Stone-ground Coriander)" required {{ '' if is_authenticated_maker else 'disabled' }}></textarea>
+          <textarea id="prod-ingredients" name="ingredients" class="form-control" rows="2" placeholder="List all natural spices, flours, oils used (e.g. Cold-pressed Sesame Oil, Guntur Chillies, Stone-ground Coriander)" required></textarea>
         </div>
 
         <div class="form-group">
           <label class="form-label" for="prod-description"><i class="fa-solid fa-book-open"></i> Heritage Recipe Story & Technique *</label>
-          <textarea id="prod-description" name="description" class="form-control" rows="3" placeholder="Explain the heritage recipe, traditional technique, texture, and aroma..." required {{ '' if is_authenticated_maker else 'disabled' }}></textarea>
+          <textarea id="prod-description" name="description" class="form-control" rows="3" placeholder="Explain the heritage recipe, traditional technique, texture, and aroma..." required></textarea>
         </div>
 
         <div class="form-group">
           <label class="form-label" for="prod-image"><i class="fa-solid fa-image"></i> Dish / Product Image (Optional)</label>
-          <input type="file" id="prod-image" name="image" class="form-control" accept=".jpg,.jpeg,.png,.webp" {{ '' if is_authenticated_maker else 'disabled' }}>
+          <input type="file" id="prod-image" name="image" class="form-control" accept=".jpg,.jpeg,.png,.webp">
           <div style="font-size: 0.8rem; color: var(--gray-medium); margin-top: 4px;">
             Accepted formats: .jpg, .png, .webp (Max 5MB). Providing appetizing real photos boosts your verification score!
           </div>
         </div>
 
-        {% if is_authenticated_maker %}
-          <div style="display: flex; gap: 1rem; margin-top: 2rem; flex-wrap: wrap;">
-            <button type="submit" class="btn btn-primary btn-lg" id="btn-save-product">
-              <i class="fa-solid fa-cloud-arrow-up"></i> Publish Product to Catalog
-            </button>
-            <a href="{{ url_for('product.my_products') }}" class="btn btn-outline btn-lg">Cancel</a>
-          </div>
-        {% elif current_user %}
-          <div style="display: flex; gap: 1rem; margin-top: 2rem; flex-wrap: wrap; align-items: center;">
-            <a href="{{ url_for('product.products_list') }}" class="btn btn-primary btn-lg">
-              <i class="fa-solid fa-compass"></i> Browse Marketplace
-            </a>
-            <a href="{{ url_for('auth.customer_dashboard') }}" class="btn btn-outline btn-lg">
-              <i class="fa-solid fa-gauge"></i> My Dashboard
-            </a>
-          </div>
-        {% else %}
-          <div style="display: flex; gap: 1rem; margin-top: 2rem; flex-wrap: wrap; align-items: center;">
-            <a href="{{ url_for('auth.login', role='food_maker', next=url_for('product.add_product')) }}" class="btn btn-primary btn-lg">
-              <i class="fa-solid fa-right-to-bracket"></i> Sign In as Food Maker to Publish
-            </a>
-            <a href="{{ url_for('product.products_list') }}" class="btn btn-outline btn-lg">Browse Marketplace</a>
-          </div>
-        {% endif %}
+        <div style="display: flex; gap: 1rem; margin-top: 2rem; flex-wrap: wrap;">
+          <button type="submit" class="btn btn-primary btn-lg" id="btn-save-product">
+            <i class="fa-solid fa-cloud-arrow-up"></i> Publish Product to Catalog
+          </button>
+          <a href="{{ url_for('product.my_products') }}" class="btn btn-outline btn-lg">Cancel</a>
+        </div>
       </form>
     </div>
   </div>
 </div>
 {% endblock %}
-

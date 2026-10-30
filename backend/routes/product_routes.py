@@ -136,25 +136,26 @@ def add_product():
     user_id = session.get('user_id')
     user = User.query.get(user_id) if user_id else None
 
-    # If visitor is not logged in or is not a food maker:
-    if not user or user.role != 'food_maker':
-        if request.method == 'POST':
-            flash('Please sign in to your Food Maker partner account to publish products.', 'warning')
-            return redirect(url_for('auth.login', role='food_maker', next=url_for('product.add_product')))
+    # If visitor is not logged in, redirect them directly to sign in with next target
+    if not user:
+        flash('Please sign in to your Food Maker partner account to add new dishes.', 'info')
+        return redirect(url_for('auth.login', role='food_maker', next=url_for('product.add_product')))
 
-        # Render add_product.html with guidance card and disabled preview
-        return render_template(
-            'add_product.html',
-            categories=FOOD_CATEGORIES,
-            maker=None,
-            is_authenticated_maker=False,
-            current_user=user
-        )
+    # Seamlessly activate food maker capabilities for any authenticated user
+    if user.role != 'food_maker':
+        user.role = 'food_maker'
+        session['user_role'] = 'food_maker'
+        db.session.commit()
 
-    # User is an authenticated food maker
+    # Ensure maker kitchen profile exists
     maker = FoodMaker.query.filter_by(user_id=user.id).first()
     if not maker:
-        maker = FoodMaker(user_id=user.id, speciality='Authentic Regional Cuisine', years_experience=3)
+        maker = FoodMaker(
+            user_id=user.id,
+            speciality='Authentic Regional Cuisine',
+            years_experience=3,
+            cuisines='Regional Traditional Dishes'
+        )
         maker.calculate_verification_score()
         db.session.add(maker)
         db.session.commit()
@@ -163,7 +164,7 @@ def add_product():
         is_valid, err_msg = validate_product_data(request.form)
         if not is_valid:
             flash(err_msg, 'danger')
-            return render_template('add_product.html', categories=FOOD_CATEGORIES, maker=maker, is_authenticated_maker=True)
+            return render_template('add_product.html', categories=FOOD_CATEGORIES, maker=maker)
 
         name = request.form.get('name', '').strip()
         category = request.form.get('category', '').strip()
@@ -217,7 +218,7 @@ def add_product():
         flash(f'Product "{name}" ({net_quantity}) added successfully to your regional kitchen catalog!', 'success')
         return redirect(url_for('product.my_products'))
 
-    return render_template('add_product.html', categories=FOOD_CATEGORIES, maker=maker, is_authenticated_maker=True)
+    return render_template('add_product.html', categories=FOOD_CATEGORIES, maker=maker)
 
 
 @product_bp.route('/edit-product/<int:product_id>', methods=['GET', 'POST'])
