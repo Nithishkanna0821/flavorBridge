@@ -43,7 +43,15 @@ def create_app():
 
     # App configuration
     app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'flavorbridge-super-secret-key-2026-production-ready')
-    app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{db_file_path}"
+    
+    # Database configuration (supports Supabase/Neon PostgreSQL or local SQLite)
+    database_url = os.environ.get('DATABASE_URL')
+    if database_url:
+        if database_url.startswith('postgres://'):
+            database_url = database_url.replace('postgres://', 'postgresql://', 1)
+        app.config['SQLALCHEMY_DATABASE_URI'] = database_url
+    else:
+        app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{db_file_path}"
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['UPLOAD_FOLDER'] = upload_folder
     app.config['MAX_CONTENT_LENGTH'] = 10 * 1024 * 1024  # 10MB

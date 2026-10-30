@@ -41,7 +41,7 @@ def food_makers_list():
 @food_maker_bp.route('/food-maker/<int:maker_id>')
 def food_maker_profile(maker_id):
     maker = FoodMaker.query.get_or_404(maker_id)
-    products = Product.query.filter_by(food_maker_id=maker.id).all()
+    products = Product.query.filter_by(food_maker_id=maker.id).order_by(Product.created_at.desc()).all()
     reviews = Review.query.filter_by(food_maker_id=maker.id).order_by(Review.created_at.desc()).all()
     return render_template(
         'food_maker_profile.html',

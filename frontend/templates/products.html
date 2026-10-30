@@ -139,11 +139,11 @@
         <div style="display: flex; align-items: center; gap: 0.75rem;">
           <label for="sort-select" style="font-size: 0.88rem; font-weight: 600; color: var(--dark);">Sort By:</label>
           <select id="sort-select" class="form-control" style="width: auto; padding: 0.4rem 0.8rem; font-size: 0.88rem;" onchange="const form = document.querySelector('#catalog-filter-form'); const hiddenSort = document.createElement('input'); hiddenSort.type='hidden'; hiddenSort.name='sort'; hiddenSort.value=this.value; form.appendChild(hiddenSort); form.submit();">
+            <option value="newest" {{ 'selected' if sort_by == 'newest' else '' }}>Newest Arrivals</option>
             <option value="popular" {{ 'selected' if sort_by == 'popular' else '' }}>Most Popular</option>
             <option value="rating" {{ 'selected' if sort_by == 'rating' else '' }}>Top Rated</option>
             <option value="price_asc" {{ 'selected' if sort_by == 'price_asc' else '' }}>Price: Low to High</option>
             <option value="price_desc" {{ 'selected' if sort_by == 'price_desc' else '' }}>Price: High to Low</option>
-            <option value="newest" {{ 'selected' if sort_by == 'newest' else '' }}>Newest Arrivals</option>
           </select>
         </div>
       </div>
@@ -245,4 +245,25 @@
     </main>
   </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  try {
+    const saved = JSON.parse(localStorage.getItem('fb_maker_dishes') || '[]');
+    if (saved && saved.length > 0) {
+      fetch('{{ url_for("product.sync_products") }}', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ dishes: saved })
+      }).then(r => r.json()).then(data => {
+        if (data && data.synced > 0) {
+          window.location.reload();
+        }
+      }).catch(err => console.log('Catalog sync:', err));
+    }
+  } catch (e) {}
+});
+</script>
 {% endblock %}

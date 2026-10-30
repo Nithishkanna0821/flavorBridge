@@ -105,3 +105,24 @@
 
 </div>
 {% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  try {
+    const saved = JSON.parse(localStorage.getItem('fb_maker_dishes') || '[]');
+    if (saved && saved.length > 0) {
+      fetch('{{ url_for("product.sync_products") }}', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ dishes: saved })
+      }).then(r => r.json()).then(data => {
+        if (data && data.synced > 0) {
+          window.location.reload();
+        }
+      }).catch(err => console.log('Sync check:', err));
+    }
+  } catch (e) {}
+});
+</script>
+{% endblock %}

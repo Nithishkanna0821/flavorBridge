@@ -1,5 +1,6 @@
 import os
-from flask import Blueprint, render_template, request, redirect, url_for, flash, session, current_app, abort
+from datetime import datetime
+from flask import Blueprint, render_template, request, redirect, url_for, flash, session, current_app, abort, jsonify
 from backend.extensions import db
 from backend.models import Product, FoodMaker, User, Review, Interaction
 from backend.utils.security import login_required, role_required, get_or_create_food_maker
@@ -29,7 +30,7 @@ def products_list():
     min_price = request.args.get('min_price', type=float)
     max_price = request.args.get('max_price', type=float)
     min_rating = request.args.get('min_rating', type=float)
-    sort_by = request.args.get('sort', 'popular')
+    sort_by = request.args.get('sort', 'newest')
 
     # Start with all products
     base_query = Product.query
@@ -75,12 +76,12 @@ def products_list():
     elif sort_by == 'price_desc':
         products = sorted(products, key=lambda p: p.price, reverse=True)
     elif sort_by == 'rating':
-        products = sorted(products, key=lambda p: p.average_rating, reverse=True)
-    elif sort_by == 'newest':
-        products = sorted(products, key=lambda p: p.created_at, reverse=True)
-    elif not query:
-        # Default popular sort
         products = sorted(products, key=lambda p: (p.average_rating, p.rating_count), reverse=True)
+    elif sort_by == 'popular':
+        products = sorted(products, key=lambda p: (p.rating_count, p.average_rating), reverse=True)
+    else:
+        # Default 'newest' / catalog browse: Newly added handcrafted regional delicacies first!
+        products = sorted(products, key=lambda p: (p.created_at or datetime.min), reverse=True)
 
     # Get distinct cities for filter dropdown
     all_cities = sorted(list(set(p.city for p in Product.query.all() if p.city)))
@@ -285,3 +286,52 @@ def my_products():
     maker = get_or_create_food_maker(user_id)
     products = Product.query.filter_by(food_maker_id=maker.id).order_by(Product.created_at.desc()).all()
     return render_template('my_products.html', maker=maker, products=products)
+
+
+@product_bp.route('/api/sync-products', methods=['POST'])
+def sync_products():
+    """Sync locally cached dishes into the database (guarantees permanence on serverless instances)."""
+    user_id = session.get('user_id')
+    maker = get_or_create_food_maker(user_id) if user_id else None
+
+    data = request.get_json(silent=True) or {}
+    dishes = data.get('dishes', [])
+
+    synced = 0
+    if maker and isinstance(dishes, list):
+        for d in dishes:
+            name = (d.get('name') or '').strip()
+            if not name:
+                continue
+            existing = Product.query.filter_by(food_maker_id=maker.id, name=name).first()
+            if not existing:
+                try:
+                    price = float(d.get('price', 150))
+                except (ValueError, TypeError):
+                    price = 150.0
+                try:
+                    stock = int(d.get('stock', 20))
+                except (ValueError, TypeError):
+                    stock = 20
+                prod = Product(
+                    food_maker_id=maker.id,
+                    name=name,
+                    category=d.get('category') or 'Traditional Snacks',
+                    price=price,
+                    stock=stock,
+                    product_type=d.get('product_type') or 'Packaged Food',
+                    preparation_time=d.get('preparation_time') or '1 day',
+                    net_quantity=d.get('net_quantity') or '250g',
+                    city=d.get('city') or (maker.user.city if maker.user else '') or 'Chennai',
+                    region=d.get('region') or '',
+                    ingredients=d.get('ingredients') or '',
+                    description=d.get('description') or '',
+                    image=d.get('image') or ''
+                )
+                db.session.add(prod)
+                synced += 1
+        if synced > 0:
+            maker.calculate_verification_score()
+            db.session.commit()
+
+    return jsonify({"status": "ok", "synced": synced})
