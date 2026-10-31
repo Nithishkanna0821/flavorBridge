@@ -27,7 +27,17 @@ def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         user_id = session.get('user_id')
-        if not user_id or not User.query.get(user_id):
+        if not user_id:
+            flash('Please log in to access this page.', 'warning')
+            return redirect(url_for('auth.login', next=request.path))
+        user = User.query.get(user_id)
+        if not user:
+            user_email = session.get('user_email')
+            if user_email:
+                user = User.query.filter_by(email=user_email).first()
+                if user:
+                    session['user_id'] = user.id
+        if not user:
             session.clear()
             flash('Please log in to access this page.', 'warning')
             return redirect(url_for('auth.login', next=request.path))
@@ -69,11 +79,23 @@ def role_required(required_role):
             
             user = User.query.get(user_id)
             if not user:
+                user_email = session.get('user_email')
+                if user_email:
+                    user = User.query.filter_by(email=user_email).first()
+                    if user:
+                        session['user_id'] = user.id
+            if not user:
                 session.clear()
                 flash('Please log in to access this page.', 'warning')
                 return redirect(url_for('auth.login', role=required_role, next=request.path))
 
             if user.role != required_role:
+                from backend.extensions import db
+                if required_role == 'food_maker' and (user.food_maker_profile or session.get('user_role') == 'food_maker'):
+                    user.role = 'food_maker'
+                    db.session.commit()
+                    return f(*args, **kwargs)
+
                 flash(f'Access restricted. This section is for {required_role.replace("_", " ")}s only.', 'danger')
                 if user.role == 'food_maker':
                     return redirect(url_for('food_maker.dashboard'))

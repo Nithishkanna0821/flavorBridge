@@ -78,9 +78,11 @@ def register():
         db.session.commit()
 
         # Log in automatically
+        session.permanent = True
         session['user_id'] = user.id
         session['user_role'] = user.role
         session['user_name'] = user.name
+        session['user_email'] = user.email
 
         flash(f'Welcome to FlavorBridge, {user.name}! Your account has been created.', 'success')
 
@@ -118,10 +120,17 @@ def login():
             flash('Invalid email or password. Please check your credentials.', 'danger')
             return render_template('login.html', next=next_url, role=selected_role)
 
+        # Align user active role with the portal tab selected during sign in
+        if selected_role in ['customer', 'food_maker'] and user.role != selected_role:
+            user.role = selected_role
+            db.session.commit()
+
         # Establish session
+        session.permanent = True
         session['user_id'] = user.id
         session['user_role'] = user.role
         session['user_name'] = user.name
+        session['user_email'] = user.email
 
         # Determine target redirect if next is provided
         target_redirect = None

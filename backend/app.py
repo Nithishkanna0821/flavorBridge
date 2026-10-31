@@ -45,9 +45,13 @@ def create_app():
     # App configuration
     app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'flavorbridge-super-secret-key-2026-production-ready')
     app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
-    app.config['SESSION_COOKIE_SECURE'] = True if os.environ.get('VERCEL') else False
+    app.config['SESSION_COOKIE_SECURE'] = False
     app.config['SESSION_COOKIE_HTTPONLY'] = True
     app.config['PERMANENT_SESSION_LIFETIME'] = 86400 * 30  # 30 days
+
+    # Support reverse proxies like Vercel edge/AWS API Gateway
+    from werkzeug.middleware.proxy_fix import ProxyFix
+    app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
     
     # Database configuration (supports Supabase/Neon PostgreSQL or local SQLite)
     database_url = os.environ.get('DATABASE_URL') or os.environ.get('POSTGRES_URL')

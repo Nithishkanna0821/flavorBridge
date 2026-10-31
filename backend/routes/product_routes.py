@@ -136,6 +136,12 @@ def product_detail(product_id):
 def add_product():
     user_id = session.get('user_id')
     user = User.query.get(user_id) if user_id else None
+    if not user:
+        user_email = session.get('user_email')
+        if user_email:
+            user = User.query.filter_by(email=user_email).first()
+            if user:
+                session['user_id'] = user.id
 
     # If visitor is not logged in, redirect them directly to sign in with next target
     if not user:
@@ -230,6 +236,13 @@ def add_product():
         # Recalculate maker's verification score
         maker.calculate_verification_score()
         db.session.commit()
+
+        # Re-affirm permanent session state
+        session.permanent = True
+        session['user_id'] = user.id
+        session['user_role'] = 'food_maker'
+        session['user_name'] = user.name
+        session['user_email'] = user.email
 
         flash(f'Product "{name}" ({net_quantity}) added successfully to your regional kitchen catalog!', 'success')
         return redirect(url_for('product.my_products'))
@@ -330,10 +343,11 @@ def delete_product(product_id):
 
 @product_bp.route('/my-products')
 @login_required
-@role_required('food_maker')
 def my_products():
     user_id = session.get('user_id')
     maker = get_or_create_food_maker(user_id)
+    if not maker:
+        return redirect(url_for('food_maker.dashboard'))
     products = Product.query.filter_by(food_maker_id=maker.id).order_by(Product.created_at.desc()).all()
     return render_template('my_products.html', maker=maker, products=products)
 
