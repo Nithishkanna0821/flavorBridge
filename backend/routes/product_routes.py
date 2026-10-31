@@ -142,11 +142,10 @@ def add_product():
         flash('Please sign in to your Food Maker partner account to add new dishes.', 'info')
         return redirect(url_for('auth.login', role='food_maker', next=url_for('product.add_product')))
 
-    # Seamlessly activate food maker capabilities for any authenticated user
+    # Enforce food maker role
     if user.role != 'food_maker':
-        user.role = 'food_maker'
-        session['user_role'] = 'food_maker'
-        db.session.commit()
+        flash('Access restricted. This section is for food makers only.', 'danger')
+        return redirect(url_for('auth.customer_dashboard'))
 
     # Ensure maker kitchen profile exists
     maker = get_or_create_food_maker(user.id)
@@ -177,12 +176,37 @@ def add_product():
         ingredients = request.form.get('ingredients', '').strip()
         description = request.form.get('description', '').strip()
 
-        # Handle image upload safely with Vercel upload directory
+        # Handle image upload safely with Vercel serverless persistence
         image_file = request.files.get('image')
         image_filename = ''
         if image_file and image_file.filename:
-            upload_dir = current_app.config.get('UPLOAD_FOLDER', os.path.join(current_app.root_path, 'uploads'))
-            image_filename = save_uploaded_image(image_file, upload_dir)
+            try:
+                file_bytes = image_file.read()
+                if len(file_bytes) <= 1.5 * 1024 * 1024:
+                    import base64
+                    mimetype = image_file.mimetype or 'image/jpeg'
+                    image_filename = f"data:{mimetype};base64,{base64.b64encode(file_bytes).decode('ascii')}"
+                else:
+                    image_file.seek(0)
+                    upload_dir = current_app.config.get('UPLOAD_FOLDER', os.path.join(current_app.root_path, 'uploads'))
+                    image_filename = save_uploaded_image(image_file, upload_dir)
+            except Exception:
+                image_file.seek(0)
+                upload_dir = current_app.config.get('UPLOAD_FOLDER', os.path.join(current_app.root_path, 'uploads'))
+                image_filename = save_uploaded_image(image_file, upload_dir)
+        
+        # If no image was provided, pick an authentic default regional image based on category
+        if not image_filename:
+            category_defaults = {
+                "Spice Powders & Seasonings": "sambar_powder.jpg",
+                "Traditional Snacks": "murukku.jpg",
+                "Traditional Sweets": "mysore_pak.jpg",
+                "Pickles": "mango_pickle.jpg",
+                "Beverages": "degree_coffee.jpg",
+                "Homemade Food Products": "spice_mixes.jpg",
+                "Fresh Regional Foods": "kari_dosa.jpg"
+            }
+            image_filename = category_defaults.get(category, "hero_food_banner.jpg")
 
         product = Product(
             food_maker_id=maker.id,
@@ -244,10 +268,24 @@ def edit_product(product_id):
         # Handle image upload if a new one was provided
         image_file = request.files.get('image')
         if image_file and image_file.filename:
-            upload_dir = current_app.config.get('UPLOAD_FOLDER', os.path.join(current_app.root_path, 'uploads'))
-            new_image = save_uploaded_image(image_file, upload_dir)
-            if new_image:
-                product.image = new_image
+            try:
+                file_bytes = image_file.read()
+                if len(file_bytes) <= 1.5 * 1024 * 1024:
+                    import base64
+                    mimetype = image_file.mimetype or 'image/jpeg'
+                    product.image = f"data:{mimetype};base64,{base64.b64encode(file_bytes).decode('ascii')}"
+                else:
+                    image_file.seek(0)
+                    upload_dir = current_app.config.get('UPLOAD_FOLDER', os.path.join(current_app.root_path, 'uploads'))
+                    new_image = save_uploaded_image(image_file, upload_dir)
+                    if new_image:
+                        product.image = new_image
+            except Exception:
+                image_file.seek(0)
+                upload_dir = current_app.config.get('UPLOAD_FOLDER', os.path.join(current_app.root_path, 'uploads'))
+                new_image = save_uploaded_image(image_file, upload_dir)
+                if new_image:
+                    product.image = new_image
 
         maker.calculate_verification_score()
         db.session.commit()
@@ -265,14 +303,25 @@ def delete_product(product_id):
     user_id = session.get('user_id')
     maker = get_or_create_food_maker(user_id)
     product = Product.query.get_or_404(product_id)
+    is_ajax = request.is_json or request.headers.get('X-Requested-With') == 'XMLHttpRequest'
 
     if product.food_maker_id != maker.id:
+        if is_ajax:
+            return jsonify({'success': False, 'message': 'Unauthorized'}), 403
         abort(403)
 
     prod_name = product.name
     db.session.delete(product)
     maker.calculate_verification_score()
     db.session.commit()
+
+    if is_ajax:
+        return jsonify({
+            'success': True,
+            'product_id': product_id,
+            'name': prod_name,
+            'message': f'Product "{prod_name}" has been removed from your store.'
+        })
 
     flash(f'Product "{prod_name}" has been removed from your store.', 'info')
     return redirect(url_for('product.my_products'))

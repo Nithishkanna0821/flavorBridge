@@ -92,7 +92,7 @@
   <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.5rem; margin-bottom: 3rem;">
     <div style="background: #FFFFFF; border-radius: 14px; border: var(--border-light); padding: 1.5rem; box-shadow: var(--shadow-sm);">
       <div style="font-size: 0.82rem; color: var(--gray-medium); text-transform: uppercase; font-weight: 700;">Active Delicacies</div>
-      <div style="font-size: 2.2rem; font-weight: 800; color: var(--dark); font-family: var(--font-heading); margin-top: 0.3rem;">
+      <div id="maker-metric-active-delicacies" style="font-size: 2.2rem; font-weight: 800; color: var(--dark); font-family: var(--font-heading); margin-top: 0.3rem;">
         {{ products|length }}
       </div>
       <a href="{{ url_for('product.my_products') }}" style="font-size: 0.82rem; color: var(--primary); font-weight: 600; margin-top: 0.4rem; display: inline-block;">
@@ -102,7 +102,7 @@
 
     <div style="background: #FFFFFF; border-radius: 14px; border: var(--border-light); padding: 1.5rem; box-shadow: var(--shadow-sm);">
       <div style="font-size: 0.82rem; color: var(--gray-medium); text-transform: uppercase; font-weight: 700;">Incoming / Active Orders</div>
-      <div style="font-size: 2.2rem; font-weight: 800; color: #E65100; font-family: var(--font-heading); margin-top: 0.3rem;">
+      <div id="maker-metric-active-orders" style="font-size: 2.2rem; font-weight: 800; color: #E65100; font-family: var(--font-heading); margin-top: 0.3rem;">
         {{ pending_orders|length }}
       </div>
       <span style="font-size: 0.82rem; color: var(--gray-dark); margin-top: 0.4rem; display: inline-block;">Requires preparation</span>
@@ -110,7 +110,7 @@
 
     <div style="background: #FFFFFF; border-radius: 14px; border: var(--border-light); padding: 1.5rem; box-shadow: var(--shadow-sm);">
       <div style="font-size: 0.82rem; color: var(--gray-medium); text-transform: uppercase; font-weight: 700;">Delivered Orders</div>
-      <div style="font-size: 2.2rem; font-weight: 800; color: #27AE60; font-family: var(--font-heading); margin-top: 0.3rem;">
+      <div id="maker-metric-completed-orders" style="font-size: 2.2rem; font-weight: 800; color: #27AE60; font-family: var(--font-heading); margin-top: 0.3rem;">
         {{ completed_orders|length }}
       </div>
       <span style="font-size: 0.82rem; color: var(--gray-dark); margin-top: 0.4rem; display: inline-block;">Delivered to customers</span>
@@ -118,7 +118,7 @@
 
     <div style="background: #FFFFFF; border-radius: 14px; border: var(--border-light); padding: 1.5rem; box-shadow: var(--shadow-sm);">
       <div style="font-size: 0.82rem; color: var(--gray-medium); text-transform: uppercase; font-weight: 700;">Total Orders Revenue (COD)</div>
-      <div style="font-size: 2.2rem; font-weight: 800; color: var(--primary); font-family: var(--font-heading); margin-top: 0.3rem;">
+      <div id="maker-metric-total-revenue" style="font-size: 2.2rem; font-weight: 800; color: var(--primary); font-family: var(--font-heading); margin-top: 0.3rem;">
         ₹{{ "%.2f"|format(total_revenue) }}
       </div>
       <span style="font-size: 0.82rem; color: var(--gray-dark); margin-top: 0.4rem; display: inline-block;">Lifetime sales</span>
@@ -149,7 +149,7 @@
           </thead>
           <tbody>
             {% for order in orders %}
-              <tr>
+              <tr id="maker-order-row-{{ order.id }}">
                 <td>
                   <strong>#ORD-{{ "%05d"|format(order.id) }}</strong>
                   <div style="font-size: 0.75rem; color: var(--gray-medium);">{{ order.created_at.strftime('%b %d, %I:%M %p') }}</div>
@@ -169,13 +169,13 @@
                 </td>
 
                 <td>
-                  <span class="badge {% if order.status == 'Delivered' %}badge-verified{% elif order.status in ['Preparing', 'Shipped', 'Out for Delivery'] %}badge-fresh{% else %}badge-pending{% endif %}">
+                  <span id="order-status-badge-{{ order.id }}" class="badge {% if order.status == 'Delivered' %}badge-verified{% elif order.status in ['Preparing', 'Shipped', 'Out for Delivery'] %}badge-fresh{% else %}badge-pending{% endif %}">
                     {{ order.status }}
                   </span>
                 </td>
 
                 <td>
-                  <form method="POST" action="{{ url_for('order.update_order_status') }}" style="display: flex; gap: 0.5rem; align-items: center;">
+                  <form method="POST" action="{{ url_for('order.update_order_status') }}" class="order-status-ajax-form" data-order-id="{{ order.id }}" style="display: flex; gap: 0.5rem; align-items: center;">
                     <input type="hidden" name="order_id" value="{{ order.id }}">
                     <select name="status" class="form-control" style="font-size: 0.82rem; padding: 0.35rem 0.65rem; width: auto;">
                       <option value="Pending" {{ 'selected' if order.status == 'Pending' else '' }}>Pending</option>

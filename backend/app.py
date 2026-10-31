@@ -44,11 +44,43 @@ def create_app():
 
     # App configuration
     app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'flavorbridge-super-secret-key-2026-production-ready')
+    app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+    app.config['SESSION_COOKIE_SECURE'] = True if os.environ.get('VERCEL') else False
+    app.config['SESSION_COOKIE_HTTPONLY'] = True
+    app.config['PERMANENT_SESSION_LIFETIME'] = 86400 * 30  # 30 days
     
-    app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{db_file_path}"
+    # Database configuration (supports Supabase/Neon PostgreSQL or local SQLite)
+    database_url = os.environ.get('DATABASE_URL') or os.environ.get('POSTGRES_URL')
+    if database_url:
+        if database_url.startswith('postgres://'):
+            database_url = database_url.replace('postgres://', 'postgresql://', 1)
+        try:
+            app.config['SQLALCHEMY_DATABASE_URI'] = database_url
+        except Exception:
+            app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{db_file_path}"
+    else:
+        app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{db_file_path}"
+
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['UPLOAD_FOLDER'] = upload_folder
     app.config['MAX_CONTENT_LENGTH'] = 10 * 1024 * 1024  # 10MB
+
+    # Optimize SQLite performance with WAL mode and cache sizing
+    from sqlalchemy import event
+    from sqlalchemy.engine import Engine
+
+    @event.listens_for(Engine, "connect")
+    def set_sqlite_pragma(dbapi_connection, connection_record):
+        uri = str(app.config.get('SQLALCHEMY_DATABASE_URI', ''))
+        if uri.startswith('sqlite'):
+            try:
+                cursor = dbapi_connection.cursor()
+                cursor.execute("PRAGMA journal_mode = WAL")
+                cursor.execute("PRAGMA synchronous = NORMAL")
+                cursor.execute("PRAGMA cache_size = 10000")
+                cursor.close()
+            except Exception:
+                pass
 
     # Initialize extensions
     db.init_app(app)
@@ -69,6 +101,22 @@ def create_app():
     app.register_blueprint(food_maker_bp)
     app.register_blueprint(review_bp)
     app.register_blueprint(ai_bp)
+
+    # Custom Jinja Filter for Safe, Instant Image URL Resolution
+    @app.template_filter('img_url')
+    def img_url_filter(img_val, default='hero_food_banner.jpg'):
+        if not img_val:
+            return f'/static/images/{default}'
+        img_str = str(img_val).strip()
+        if img_str.startswith('data:') or img_str.startswith('http://') or img_str.startswith('https://'):
+            return img_str
+        backend_uploads = os.path.join(base_dir, 'uploads')
+        if os.path.exists(os.path.join(backend_uploads, img_str)):
+            return f'/uploads/{img_str}'
+        static_images = os.path.join(frontend_dir, 'static', 'images')
+        if os.path.exists(os.path.join(static_images, img_str)):
+            return f'/static/images/{img_str}'
+        return f'/uploads/{img_str}'
 
     # Global Context Processor for Templates
     @app.context_processor
@@ -104,8 +152,8 @@ def create_app():
             categories_list=categories
         )
 
-    # Route for serving uploaded images
-    @app.route('/uploads/<filename>')
+    # Route for serving uploaded images with automatic graceful fallback
+    @app.route('/uploads/<path:filename>')
     def uploaded_file(filename):
         backend_uploads = os.path.join(base_dir, 'uploads')
         if os.path.exists(os.path.join(backend_uploads, filename)):
@@ -113,7 +161,11 @@ def create_app():
         static_images = os.path.join(frontend_dir, 'static', 'images')
         if os.path.exists(os.path.join(static_images, filename)):
             return send_from_directory(static_images, filename)
-        return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+        upload_folder = app.config.get('UPLOAD_FOLDER', '')
+        if upload_folder and os.path.exists(os.path.join(upload_folder, filename)):
+            return send_from_directory(upload_folder, filename)
+        # Safe fallback: return authentic regional banner instead of 404
+        return send_from_directory(static_images, 'hero_food_banner.jpg')
 
     # Homepage Route
     @app.route('/')
@@ -150,6 +202,18 @@ def create_app():
             category_highlights=category_highlights,
             popular_cities=popular_cities
         )
+
+    @app.route('/api/system-diag')
+    def system_diag():
+        from flask import jsonify
+        env_keys = [k for k in os.environ.keys() if not k.startswith('_') and 'SECRET' not in k and 'KEY' not in k and 'TOKEN' not in k]
+        return jsonify({
+            'keys': env_keys,
+            'has_database_url': 'DATABASE_URL' in os.environ,
+            'has_postgres_url': 'POSTGRES_URL' in os.environ,
+            'has_kv_url': 'KV_URL' in os.environ or 'KV_REST_API_URL' in os.environ,
+            'db_val': os.environ.get('DATABASE_URL', '')[:20] if 'DATABASE_URL' in os.environ else ''
+        })
 
     # Error Handlers
     @app.errorhandler(404)

@@ -2535,3 +2535,10 @@ body.nav-open {
   }
 }
 
+/* Instant AJAX Status Update Micro-Animation */
+@keyframes pulseBadge {
+  0% { transform: scale(0.88); opacity: 0.6; }
+  50% { transform: scale(1.08); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+

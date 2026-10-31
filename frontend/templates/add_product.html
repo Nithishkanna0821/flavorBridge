@@ -110,38 +110,3 @@
   </div>
 </div>
 {% endblock %}
-
-{% block extra_js %}
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-  const form = document.getElementById('add-product-form');
-  if (form) {
-    form.addEventListener('submit', function() {
-      try {
-        const dish = {
-          name: document.getElementById('prod-name')?.value?.trim() || '',
-          category: document.getElementById('prod-category')?.value || '',
-          price: document.getElementById('prod-price')?.value || '',
-          stock: document.getElementById('prod-stock')?.value || '',
-          product_type: document.getElementById('prod-type')?.value || 'Packaged Food',
-          net_quantity: document.getElementById('prod-net-qty')?.value || '',
-          preparation_time: document.getElementById('prod-prep-time')?.value || '',
-          city: document.getElementById('prod-city')?.value || '',
-          region: document.getElementById('prod-region')?.value || '',
-          ingredients: document.getElementById('prod-ingredients')?.value || '',
-          description: document.getElementById('prod-description')?.value || ''
-        };
-        if (dish.name) {
-          let saved = JSON.parse(localStorage.getItem('fb_maker_dishes') || '[]');
-          saved = saved.filter(d => d.name !== dish.name);
-          saved.push(dish);
-          localStorage.setItem('fb_maker_dishes', JSON.stringify(saved));
-        }
-      } catch (e) {
-        console.warn('Storage sync error:', e);
-      }
-    });
-  }
-});
-</script>
-{% endblock %}

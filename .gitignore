@@ -30,6 +30,8 @@ venv/
 # Database
 # Note: Keep database.db and schema tracked so demo works immediately
 *.sqlite3
+*.db-wal
+*.db-shm
 instance/
 
 # IDE & OS

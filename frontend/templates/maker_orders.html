@@ -46,7 +46,7 @@
   {% if orders %}
     <div style="display: flex; flex-direction: column; gap: 1.5rem;">
       {% for order in orders %}
-        <div class="card" style="padding: 1.75rem; border-radius: 16px; border: var(--border-light); box-shadow: var(--shadow-sm); background: #FFFFFF;">
+        <div id="maker-order-card-{{ order.id }}" class="card" style="padding: 1.75rem; border-radius: 16px; border: var(--border-light); box-shadow: var(--shadow-sm); background: #FFFFFF;">
           
           <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 1.25rem; border-bottom: 1px solid var(--gray-light); flex-wrap: wrap; gap: 1rem;">
             <div>
@@ -61,17 +61,9 @@
 
             <!-- Current Order Status Badge -->
             <div>
-              {% if order.status == 'Pending' %}
-                <span class="badge badge-pending" style="font-size: 0.88rem; padding: 0.4rem 0.9rem;"><i class="fa-solid fa-hourglass-half"></i> Pending Acceptance</span>
-              {% elif order.status == 'Preparing' %}
-                <span class="badge" style="background: #E8F8F5; color: #117A65; border: 1px solid #A3E4D7; font-size: 0.88rem; padding: 0.4rem 0.9rem;"><i class="fa-solid fa-fire"></i> Freshly Preparing</span>
-              {% elif order.status == 'Shipped' or order.status == 'Out for Delivery' %}
-                <span class="badge" style="background: #EBF5FB; color: #2980B9; border: 1px solid #AED6F1; font-size: 0.88rem; padding: 0.4rem 0.9rem;"><i class="fa-solid fa-truck-fast"></i> {{ order.status }}</span>
-              {% elif order.status == 'Delivered' %}
-                <span class="badge badge-verified" style="font-size: 0.88rem; padding: 0.4rem 0.9rem;"><i class="fa-solid fa-circle-check"></i> Delivered</span>
-              {% else %}
-                <span class="badge badge-category" style="font-size: 0.88rem; padding: 0.4rem 0.9rem;">{{ order.status }}</span>
-              {% endif %}
+              <span id="order-status-badge-{{ order.id }}" class="badge {% if order.status == 'Delivered' %}badge-verified{% elif order.status in ['Preparing', 'Shipped', 'Out for Delivery'] %}badge-fresh{% else %}badge-pending{% endif %}" style="font-size: 0.88rem; padding: 0.4rem 0.9rem;">
+                {{ order.status }}
+              </span>
             </div>
           </div>
 
@@ -150,7 +142,7 @@
 
           <!-- Live Status Updater -->
           <div style="display: flex; justify-content: flex-end; align-items: center; padding-top: 1rem; margin-top: 0.75rem; border-top: 1px solid var(--gray-light);">
-            <form method="POST" action="{{ url_for('order.update_order_status') }}" style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+            <form method="POST" action="{{ url_for('order.update_order_status') }}" class="order-status-ajax-form" data-order-id="{{ order.id }}" style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
               <input type="hidden" name="order_id" value="{{ order.id }}">
               <label for="status-select-{{ order.id }}" style="font-size: 0.82rem; font-weight: 700; color: var(--gray-medium);">Update Status:</label>
               <select name="status" id="status-select-{{ order.id }}" class="form-control" style="width: auto; padding: 0.4rem 0.85rem; font-size: 0.88rem; font-weight: 600;">

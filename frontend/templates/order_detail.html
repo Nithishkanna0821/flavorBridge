@@ -23,7 +23,7 @@
         </p>
       </div>
       <div>
-        <span class="badge {% if order.status == 'Delivered' %}badge-verified{% elif order.status in ['Preparing', 'Shipped', 'Out for Delivery'] %}badge-fresh{% else %}badge-pending{% endif %}" style="font-size: 1rem; padding: 0.4rem 1rem;">
+        <span id="order-status-badge-{{ order.id }}" class="badge {% if order.status == 'Delivered' %}badge-verified{% elif order.status in ['Preparing', 'Shipped', 'Out for Delivery'] %}badge-fresh{% else %}badge-pending{% endif %}" style="font-size: 1rem; padding: 0.4rem 1rem;">
           <i class="fa-solid fa-circle-dot"></i> {{ order.status }}
         </span>
       </div>
@@ -40,7 +40,7 @@
         Update the progress of this regional order as you prepare and dispatch the delicacies.
       </p>
 
-      <form method="POST" action="{{ url_for('order.update_order_status') }}" style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+      <form method="POST" action="{{ url_for('order.update_order_status') }}" class="order-status-ajax-form" data-order-id="{{ order.id }}" style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
         <input type="hidden" name="order_id" value="{{ order.id }}">
         
         <select name="status" class="form-control" style="width: auto; font-weight: 600;">

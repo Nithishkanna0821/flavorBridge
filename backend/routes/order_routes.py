@@ -174,17 +174,31 @@ def order_detail(order_id):
 @login_required
 @role_required('food_maker')
 def update_order_status():
+    from flask import jsonify
     user_id = session.get('user_id')
     maker = get_or_create_food_maker(user_id)
+    is_ajax = request.is_json or request.headers.get('X-Requested-With') == 'XMLHttpRequest'
 
-    order_id = request.form.get('order_id', type=int)
-    new_status = request.form.get('status', '').strip()
+    if request.is_json:
+        data = request.get_json(silent=True) or {}
+        order_id = data.get('order_id')
+        new_status = (data.get('status') or '').strip()
+    else:
+        order_id = request.form.get('order_id', type=int)
+        new_status = (request.form.get('status') or '').strip()
 
-    order = Order.query.get_or_404(order_id)
+    order = Order.query.get(order_id)
+    if not order:
+        if is_ajax:
+            return jsonify({'success': False, 'message': 'Order not found.'}), 404
+        flash('Order not found.', 'danger')
+        return redirect(url_for('food_maker.dashboard'))
 
     # Verify that this order contains products from this maker
     maker_items = [item for item in order.items if item.food_maker_id == maker.id]
     if not maker_items:
+        if is_ajax:
+            return jsonify({'success': False, 'message': 'You are not authorized to update this order.'}), 403
         flash('You are not authorized to update this order.', 'danger')
         return redirect(url_for('food_maker.dashboard'))
 
@@ -192,8 +206,20 @@ def update_order_status():
     if new_status in valid_statuses:
         order.status = new_status
         db.session.commit()
-        flash(f'Order #{order.id} status updated to "{new_status}".', 'success')
+        msg = f'Order #{order.id} status updated to "{new_status}".'
+        if is_ajax:
+            return jsonify({
+                'success': True,
+                'order_id': order.id,
+                'status': new_status,
+                'status_step': order.status_step,
+                'is_fresh': order.has_fresh_food,
+                'message': msg
+            })
+        flash(msg, 'success')
     else:
+        if is_ajax:
+            return jsonify({'success': False, 'message': 'Invalid status selected.'}), 400
         flash('Invalid status selected.', 'danger')
 
     return redirect(request.referrer or url_for('food_maker.dashboard'))

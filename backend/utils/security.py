@@ -43,9 +43,6 @@ def get_or_create_food_maker(user_id):
         return None
     maker = FoodMaker.query.filter_by(user_id=user.id).first()
     if not maker:
-        if user.role != 'food_maker':
-            user.role = 'food_maker'
-            session['user_role'] = 'food_maker'
         maker = FoodMaker(
             user_id=user.id,
             speciality='Authentic Traditional Kitchen',
@@ -57,10 +54,6 @@ def get_or_create_food_maker(user_id):
         )
         maker.calculate_verification_score()
         db.session.add(maker)
-        db.session.commit()
-    elif user.role != 'food_maker':
-        user.role = 'food_maker'
-        session['user_role'] = 'food_maker'
         db.session.commit()
     return maker
 
@@ -81,16 +74,11 @@ def role_required(required_role):
                 return redirect(url_for('auth.login', role=required_role, next=request.path))
 
             if user.role != required_role:
-                if required_role == 'food_maker':
-                    # Seamlessly activate food maker capabilities so user is never blocked
-                    from backend.extensions import db
-                    user.role = 'food_maker'
-                    session['user_role'] = 'food_maker'
-                    db.session.commit()
-                    get_or_create_food_maker(user.id)
-                else:
-                    flash(f'Access restricted. This section is for {required_role.replace("_", " ")}s only.', 'danger')
+                flash(f'Access restricted. This section is for {required_role.replace("_", " ")}s only.', 'danger')
+                if user.role == 'food_maker':
                     return redirect(url_for('food_maker.dashboard'))
+                else:
+                    return redirect(url_for('auth.customer_dashboard'))
             return f(*args, **kwargs)
         return decorated_function
     return decorator
