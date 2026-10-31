@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session
 from backend.extensions import db
 from backend.models import User, FoodMaker, Order, Interaction, Product
-from backend.utils.security import hash_password, verify_password, login_required, role_required
+from backend.utils.security import hash_password, verify_password, login_required, role_required, get_or_create_food_maker
 from backend.utils.validators import validate_email, validate_phone
 
 auth_bp = Blueprint('auth', __name__)
@@ -120,10 +120,18 @@ def login():
             flash('Invalid email or password. Please check your credentials.', 'danger')
             return render_template('login.html', next=next_url, role=selected_role)
 
-        # Align user active role with the portal tab selected during sign in
-        if selected_role in ['customer', 'food_maker'] and user.role != selected_role:
-            user.role = selected_role
-            db.session.commit()
+        # Align role with the selected portal tab:
+        if selected_role == 'food_maker':
+            user.role = 'food_maker'
+            maker = get_or_create_food_maker(user.id)
+        elif selected_role == 'customer':
+            user.role = 'customer'
+        elif user.food_maker_profile or user.role == 'food_maker':
+            user.role = 'food_maker'
+            maker = get_or_create_food_maker(user.id)
+        else:
+            user.role = 'customer'
+        db.session.commit()
 
         # Establish session
         session.permanent = True
