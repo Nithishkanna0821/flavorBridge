@@ -8,7 +8,6 @@ order_bp = Blueprint('order', __name__)
 
 @order_bp.route('/checkout')
 @login_required
-@role_required('customer')
 def checkout():
     user_id = session.get('user_id')
     user = User.query.get_or_404(user_id)
@@ -34,7 +33,6 @@ def checkout():
 
 @order_bp.route('/place-order', methods=['POST'])
 @login_required
-@role_required('customer')
 def place_order():
     user_id = session.get('user_id')
     user = User.query.get_or_404(user_id)
@@ -121,7 +119,6 @@ def place_order():
 
 @order_bp.route('/order-confirmation/<int:order_id>')
 @login_required
-@role_required('customer')
 def order_confirmation(order_id):
     user_id = session.get('user_id')
     order = Order.query.filter_by(id=order_id, customer_id=user_id).first_or_404()
@@ -130,7 +127,6 @@ def order_confirmation(order_id):
 
 @order_bp.route('/orders')
 @login_required
-@role_required('customer')
 def customer_orders():
     user_id = session.get('user_id')
     orders = Order.query.filter_by(customer_id=user_id).order_by(Order.created_at.desc()).all()

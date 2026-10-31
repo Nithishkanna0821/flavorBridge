@@ -7,7 +7,6 @@ review_bp = Blueprint('review', __name__)
 
 @review_bp.route('/add-review', methods=['POST'])
 @login_required
-@role_required('customer')
 def add_review():
     user_id = session.get('user_id')
     product_id = request.form.get('product_id', type=int)

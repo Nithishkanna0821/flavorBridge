@@ -142,10 +142,11 @@ def add_product():
         flash('Please sign in to your Food Maker partner account to add new dishes.', 'info')
         return redirect(url_for('auth.login', role='food_maker', next=url_for('product.add_product')))
 
-    # Enforce food maker role
+    # Seamlessly activate food maker kitchen capabilities for any authenticated user
     if user.role != 'food_maker':
-        flash('Access restricted. This section is for food makers only.', 'danger')
-        return redirect(url_for('auth.customer_dashboard'))
+        user.role = 'food_maker'
+        session['user_role'] = 'food_maker'
+        db.session.commit()
 
     # Ensure maker kitchen profile exists
     maker = get_or_create_food_maker(user.id)

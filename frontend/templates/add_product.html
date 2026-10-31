@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Add New Regional Delicacy — FlavorBridge Marketplace{% endblock %}
+{% block title %}Add New Product — FlavorBridge Food Maker Portal{% endblock %}
 
 {% block content %}
 <div class="container container-narrow" style="padding: 3.5rem 1.25rem;">
@@ -11,9 +11,9 @@
     <!-- Header Banner -->
     <div style="background: linear-gradient(135deg, #FAF7F2, #F3EBDD); padding: 1.75rem 1.75rem 1.25rem; border-bottom: 1px solid #ECE7DE;">
       <div style="font-size: 0.85rem; color: var(--gray-medium); margin-bottom: 0.35rem;">
-        <a href="{{ url_for('food_maker.dashboard') }}" style="color: var(--primary); font-weight: 600;"><i class="fa-solid fa-gauge"></i> Kitchen Dashboard</a> &gt; <span>Add Product</span>
+        <a href="{{ url_for('food_maker.dashboard') }}" style="color: var(--primary); font-weight: 600;"><i class="fa-solid fa-gauge"></i> Kitchen Dashboard</a> &gt; <span>Add New Product</span>
       </div>
-      <h1 style="font-size: 1.9rem; color: var(--dark); margin: 0 0 0.35rem;">Add New Regional Delicacy</h1>
+      <h1 style="font-size: 1.9rem; color: var(--dark); margin: 0 0 0.35rem;">Add New Product / Regional Delicacy</h1>
       <p style="color: var(--gray-dark); font-size: 0.92rem; margin: 0;">
         List your authentic homemade food product, ground spices, pure ghee sweets, or freshly cooked heritage meals.
       </p>
@@ -101,9 +101,14 @@
 
         <div style="display: flex; gap: 1rem; margin-top: 2rem; flex-wrap: wrap;">
           <button type="submit" class="btn btn-primary btn-lg" id="btn-save-product">
-            <i class="fa-solid fa-cloud-arrow-up"></i> Publish Product to Catalog
+            <i class="fa-solid fa-cloud-arrow-up"></i> Add & Publish Product to Catalog
           </button>
-          <a href="{{ url_for('product.my_products') }}" class="btn btn-outline btn-lg">Cancel</a>
+          <a href="{{ url_for('food_maker.dashboard') }}" class="btn btn-outline btn-lg">
+            <i class="fa-solid fa-gauge"></i> Back to Dashboard
+          </a>
+          <a href="{{ url_for('product.my_products') }}" class="btn btn-outline btn-lg">
+            <i class="fa-solid fa-boxes-stacked"></i> My Dishes Catalog
+          </a>
         </div>
       </form>
     </div>
