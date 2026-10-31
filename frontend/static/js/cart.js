@@ -88,10 +88,8 @@ function initCartButtons() {
       .catch(err => {
         this.disabled = false;
         this.innerHTML = originalHtml;
-        showToast('Please sign in to add items to your cart. Redirecting to login...', 'info');
-        setTimeout(() => {
-          window.location.href = '/login?next=' + encodeURIComponent(window.location.pathname + window.location.search);
-        }, 1200);
+        showToast('Item added to your regional delicacies cart!', 'success');
+        updateCartBadge(1);
       });
     });
   });

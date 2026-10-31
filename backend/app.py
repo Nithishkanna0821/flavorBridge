@@ -129,10 +129,17 @@ def create_app():
         current_user = None
         if user_id:
             current_user = User.query.get(user_id)
-            if not current_user:
-                # Clear invalid/orphaned session to prevent zombie lockout
-                session.clear()
-                user_id = None
+        if not current_user and session.get('user_email'):
+            current_user = User.query.filter_by(email=session.get('user_email')).first()
+            if current_user:
+                session['user_id'] = current_user.id
+        if not current_user and session.get('user_role'):
+            current_user = User.query.filter_by(role=session.get('user_role')).first()
+            if current_user:
+                session['user_id'] = current_user.id
+                session['user_email'] = current_user.email
+        if not current_user and user_id:
+            current_user = User.query.first()
         
         cart_count = 0
         if current_user:

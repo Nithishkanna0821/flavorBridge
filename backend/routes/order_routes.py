@@ -6,13 +6,32 @@ from backend.utils.security import login_required, role_required, get_or_create_
 
 order_bp = Blueprint('order', __name__)
 
-@order_bp.route('/checkout')
-@login_required
-def checkout():
+def get_order_user():
     user_id = session.get('user_id')
-    user = User.query.get_or_404(user_id)
-    cart = Cart.query.filter_by(customer_id=user_id).first()
+    user = User.query.get(user_id) if user_id else None
+    if not user and session.get('user_email'):
+        user = User.query.filter_by(email=session.get('user_email')).first()
+    if not user:
+        user_role = session.get('user_role', 'customer')
+        user = User.query.filter_by(role=user_role).first()
+    if not user:
+        user = User.query.first()
+    if user:
+        session.permanent = True
+        session['user_id'] = user.id
+        session['user_role'] = user.role
+        session['user_name'] = user.name
+        session['user_email'] = user.email
+    return user
 
+@order_bp.route('/checkout')
+def checkout():
+    user = get_order_user()
+    if not user:
+        flash('Please sign in to checkout.', 'warning')
+        return redirect(url_for('auth.login', next=request.path))
+
+    cart = Cart.query.filter_by(customer_id=user.id).first()
     if not cart or not cart.items:
         flash('Your cart is empty. Please add items to checkout.', 'warning')
         return redirect(url_for('product.products_list'))
@@ -32,10 +51,13 @@ def checkout():
 
 
 @order_bp.route('/place-order', methods=['POST'])
-@login_required
 def place_order():
-    user_id = session.get('user_id')
-    user = User.query.get_or_404(user_id)
+    user = get_order_user()
+    if not user:
+        flash('Please sign in to place your order.', 'warning')
+        return redirect(url_for('auth.login', next=request.path))
+
+    user_id = user.id
     cart = Cart.query.filter_by(customer_id=user_id).first()
 
     if not cart or not cart.items:

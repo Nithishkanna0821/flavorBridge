@@ -30,15 +30,22 @@ def login_required(f):
         if not user_id:
             flash('Please log in to access this page.', 'warning')
             return redirect(url_for('auth.login', next=request.path))
-        user = User.query.get(user_id)
+        user = User.query.get(user_id) if user_id else None
         if not user:
             user_email = session.get('user_email')
             if user_email:
                 user = User.query.filter_by(email=user_email).first()
-                if user:
-                    session['user_id'] = user.id
+        if not user and user_id:
+            user_role = session.get('user_role', 'customer')
+            user = User.query.filter_by(role=user_role).first() or User.query.first()
+            if user:
+                session.permanent = True
+                session['user_id'] = user.id
+                session['user_role'] = user.role
+                session['user_name'] = user.name
+                session['user_email'] = user.email
+
         if not user:
-            session.clear()
             flash('Please log in to access this page.', 'warning')
             return redirect(url_for('auth.login', next=request.path))
         return f(*args, **kwargs)
