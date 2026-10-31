@@ -110,28 +110,33 @@ function switchLoginPortal(role) {
   const regLinkBtn = document.getElementById('reg-link-btn');
   const regLinkText = document.getElementById('reg-link-text');
 
-  roleInput.value = role;
+  if (roleInput) roleInput.value = role;
 
   if (role === 'food_maker') {
-    tabMaker.style.background = 'var(--secondary)';
-    tabMaker.style.color = '#FFFFFF';
-    tabMaker.style.boxShadow = '0 2px 6px rgba(46,125,50,0.3)';
-    
-    tabCustomer.style.background = 'transparent';
-    tabCustomer.style.color = 'var(--gray-dark)';
-    tabCustomer.style.boxShadow = 'none';
+    if (tabMaker) {
+      tabMaker.style.background = 'var(--secondary)';
+      tabMaker.style.color = '#FFFFFF';
+      tabMaker.style.boxShadow = '0 2px 6px rgba(46,125,50,0.3)';
+    }
+    if (tabCustomer) {
+      tabCustomer.style.background = 'transparent';
+      tabCustomer.style.color = 'var(--gray-dark)';
+      tabCustomer.style.boxShadow = 'none';
+    }
 
-    heading.textContent = 'Food Maker Partner Portal';
-    subHeading.textContent = 'Manage your traditional kitchen, log daily ingredients & dish photos, and track incoming orders.';
+    if (heading) heading.textContent = 'Food Maker Partner Portal';
+    if (subHeading) subHeading.textContent = 'Manage your traditional kitchen, log daily ingredients & dish photos, and track incoming orders.';
     
-    badge.style.background = '#E8F8F5';
-    badge.style.color = '#117A65';
-    badge.style.border = '1px solid #A3E4D7';
-    icon.className = 'fa-solid fa-utensils';
-    text.textContent = 'Signing in to Food Maker Kitchen Dashboard & Daily Verification';
+    if (badge) {
+      badge.style.background = '#E8F8F5';
+      badge.style.color = '#117A65';
+      badge.style.border = '1px solid #A3E4D7';
+    }
+    if (icon) icon.className = 'fa-solid fa-utensils';
+    if (text) text.textContent = 'Signing in to Food Maker Kitchen Dashboard & Daily Verification';
 
-    submitBtn.style.background = 'var(--secondary)';
-    submitLabel.textContent = 'Enter Food Maker Portal';
+    if (submitBtn) submitBtn.style.background = 'var(--secondary)';
+    if (submitLabel) submitLabel.textContent = 'Enter Food Maker Portal';
 
     if (forgotLink) {
       forgotLink.style.color = 'var(--secondary)';
@@ -144,25 +149,30 @@ function switchLoginPortal(role) {
       regLinkText.textContent = 'Register as Food Maker';
     }
   } else {
-    tabCustomer.style.background = 'var(--primary)';
-    tabCustomer.style.color = '#FFFFFF';
-    tabCustomer.style.boxShadow = '0 2px 6px rgba(211,84,0,0.3)';
+    if (tabCustomer) {
+      tabCustomer.style.background = 'var(--primary)';
+      tabCustomer.style.color = '#FFFFFF';
+      tabCustomer.style.boxShadow = '0 2px 6px rgba(211,84,0,0.3)';
+    }
+    if (tabMaker) {
+      tabMaker.style.background = 'transparent';
+      tabMaker.style.color = 'var(--gray-dark)';
+      tabMaker.style.boxShadow = 'none';
+    }
 
-    tabMaker.style.background = 'transparent';
-    tabMaker.style.color = 'var(--gray-dark)';
-    tabMaker.style.boxShadow = 'none';
+    if (heading) heading.textContent = 'Customer Sign In';
+    if (subHeading) subHeading.textContent = 'Discover authentic homemade regional delicacies, access AI recommendations, and track orders.';
 
-    heading.textContent = 'Customer Sign In';
-    subHeading.textContent = 'Discover authentic homemade regional delicacies, access AI recommendations, and track orders.';
+    if (badge) {
+      badge.style.background = '#FDF2E9';
+      badge.style.color = '#B9770E';
+      badge.style.border = '1px solid #FAD7A0';
+    }
+    if (icon) icon.className = 'fa-solid fa-bag-shopping';
+    if (text) text.textContent = 'Signing in to Customer Account & Order Cart';
 
-    badge.style.background = '#FDF2E9';
-    badge.style.color = '#B9770E';
-    badge.style.border = '1px solid #FAD7A0';
-    icon.className = 'fa-solid fa-bag-shopping';
-    text.textContent = 'Signing in to Customer Account & Order Cart';
-
-    submitBtn.style.background = 'var(--primary)';
-    submitLabel.textContent = 'Sign In to FlavorBridge';
+    if (submitBtn) submitBtn.style.background = 'var(--primary)';
+    if (submitLabel) submitLabel.textContent = 'Sign In to FlavorBridge';
 
     if (forgotLink) {
       forgotLink.style.color = 'var(--primary)';
@@ -176,5 +186,12 @@ function switchLoginPortal(role) {
     }
   }
 }
+
+document.addEventListener('DOMContentLoaded', function() {
+  const roleInput = document.getElementById('login-role-input');
+  if (roleInput && roleInput.value === 'food_maker') {
+    switchLoginPortal('food_maker');
+  }
+});
 </script>
 {% endblock %}

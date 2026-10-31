@@ -263,7 +263,10 @@ function initSubmitButtonSpinners() {
     // Avoid double binding or intercepting forms handled by AJAX
     if (form.classList.contains('order-status-ajax-form')) return;
 
-    form.addEventListener('submit', function() {
+    form.addEventListener('submit', function(e) {
+      if (typeof this.checkValidity === 'function' && !this.checkValidity()) {
+        return;
+      }
       const submitBtn = this.querySelector('button[type="submit"]');
       if (submitBtn && !submitBtn.disabled) {
         setTimeout(() => {
